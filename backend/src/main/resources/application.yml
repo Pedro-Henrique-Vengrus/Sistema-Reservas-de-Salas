@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: campusflow
+  datasource:
+    url: jdbc:postgresql://localhost:5432/campusflow
+    username: campusflow
+    password: campusflow
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+# Configuracoes da aplicacao
+app:
+  jwt:
+    # Em producao, mova para variavel de ambiente. Minimo 256 bits para HS256.
+    secret: ${JWT_SECRET:campusflow-dev-secret-key-change-me-in-production-256bits-minimum}
+    # Access token curto: 1 hora (em ms)
+    expiration-ms: 3600000
+  cors:
+    allowed-origins: http://localhost:5173
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+
+logging:
+  level:
+    org.springframework.security: INFO

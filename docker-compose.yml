@@ -1,0 +1,17 @@
+# Sobe apenas o PostgreSQL para desenvolvimento local.
+# Uso: docker compose up -d
+services:
+  db:
+    image: postgres:16
+    container_name: campusflow-db
+    environment:
+      POSTGRES_DB: campusflow
+      POSTGRES_USER: campusflow
+      POSTGRES_PASSWORD: campusflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - campusflow_pgdata:/var/lib/postgresql/data
+
+volumes:
+  campusflow_pgdata:
