@@ -155,6 +155,6 @@ public class ReservaService {
     }
 
     private boolean ehAdmin(Usuario u) {
-        return u.getRole() == Role.ADMIN || u.getRole() == Role.GESTOR;
+        return u.getRole() == Role.GESTOR;
     }
 }

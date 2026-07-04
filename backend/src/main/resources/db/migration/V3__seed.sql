@@ -9,7 +9,7 @@ INSERT INTO tb_curso (nome) VALUES
 INSERT INTO tb_usuario (nome, email, senha, id_curso, role) VALUES
     ('Pedro', 'pedro@campus.br', '$2b$10$yGgZNTmMLyHsQRHzHussgOI9kFGbmWYClV2KuYbgMv/cwfKNtLa1y', 1, 'PROFESSOR'),
     ('Joao',  'joao@campus.br',  '$2b$10$yGgZNTmMLyHsQRHzHussgOI9kFGbmWYClV2KuYbgMv/cwfKNtLa1y', 1, 'COORDENADOR'),
-    ('Administrador', 'admin@campus.br', '$2b$10$yGgZNTmMLyHsQRHzHussgOI9kFGbmWYClV2KuYbgMv/cwfKNtLa1y', NULL, 'ADMIN');
+    ('Administrador', 'admin@campus.br', '$2b$10$yGgZNTmMLyHsQRHzHussgOI9kFGbmWYClV2KuYbgMv/cwfKNtLa1y', NULL, 'GESTOR');
 
 INSERT INTO tb_sala (nome, tipo, capacidade, andar) VALUES
     ('Sala 1001', 'Sala de Aula', 41, '1 Andar'),

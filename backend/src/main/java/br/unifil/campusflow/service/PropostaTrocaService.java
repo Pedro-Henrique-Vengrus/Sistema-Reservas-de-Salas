@@ -49,7 +49,7 @@ public class PropostaTrocaService {
     @Transactional
     public PropostaTroca criar(PropostaRequest dto) {
         Usuario u = usuarioLogado.get();
-        if (u.getRole() == Role.ADMIN || u.getRole() == Role.GESTOR) {
+        if (u.getRole() == Role.GESTOR) {
             throw new ConflitoException("Administradores nao propoem troca de sala.");
         }
         Reserva reservaOrigem = reservaRepository.findByIdComDados(dto.reservaOrigemId())

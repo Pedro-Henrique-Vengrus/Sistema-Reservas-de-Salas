@@ -44,8 +44,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 // Leitura de salas/cursos: qualquer autenticado
                 .requestMatchers(HttpMethod.GET, "/api/salas", "/api/salas/**", "/api/cursos", "/api/cursos/**").authenticated()
-                // Escrita (CRUD admin): apenas ADMIN/GESTOR
-                .requestMatchers("/api/salas", "/api/salas/**", "/api/cursos", "/api/cursos/**").hasAnyRole("ADMIN", "GESTOR")
+                // Escrita (CRUD admin): apenas GESTOR
+                .requestMatchers("/api/salas", "/api/salas/**", "/api/cursos", "/api/cursos/**").hasRole("GESTOR")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

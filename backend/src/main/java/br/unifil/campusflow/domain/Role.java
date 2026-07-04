@@ -4,6 +4,5 @@ public enum Role {
     PROFESSOR,
     COORDENADOR,
     REITOR,
-    GESTOR,
-    ADMIN
+    GESTOR
 }

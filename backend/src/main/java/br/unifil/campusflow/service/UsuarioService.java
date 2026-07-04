@@ -22,7 +22,7 @@ public class UsuarioService {
 
     public List<Usuario> elegiveisParaReserva() {
         Usuario u = usuarioLogado.get();
-        boolean ehAdmin = u.getRole() == Role.ADMIN || u.getRole() == Role.GESTOR;
+        boolean ehAdmin = u.getRole() == Role.GESTOR;
         if (!ehAdmin) {
             throw new ConflitoException("Apenas o Admin pode listar usuarios.");
         }

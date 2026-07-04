@@ -11,7 +11,7 @@ em full-stack: **Spring Boot 3.3 + Java 21 + PostgreSQL** no backend e **React +
 ## 🧱 O que já está pronto nesta base
 
 - **Auth JWT stateless** (access token de 1h) com login real contra o banco.
-- **RBAC**: leitura para qualquer autenticado, escrita (CRUD) só para `ADMIN`/`GESTOR`.
+- **RBAC**: leitura para qualquer autenticado, escrita (CRUD) só para `GESTOR`.
 - **Curso**: CRUD completo.
 - **Sala**: CRUD completo + **vínculo N:N com Curso** (visibilidade setorizada).
 - **Flyway** V1–V3 (schema + seed com os usuários de teste).
@@ -24,9 +24,9 @@ em full-stack: **Spring Boot 3.3 + Java 21 + PostgreSQL** no backend e **React +
 |---|---|
 | pedro@campus.br | PROFESSOR |
 | joao@campus.br | COORDENADOR |
-| admin@campus.br | ADMIN |
+| admin@campus.br | GESTOR |
 
-> Login funciona com qualquer usuário, mas as telas de CRUD exigem `ADMIN`/`GESTOR`.
+> Login funciona com qualquer usuário, mas as telas de CRUD exigem `GESTOR`.
 > Entre como **admin@campus.br** para ver os dois casos de uso.
 
 ---
@@ -96,10 +96,10 @@ O Vite faz proxy de `/api` para `localhost:8080`, então não há problema de CO
 |---|---|---|
 | POST | `/api/auth/login` | público |
 | GET | `/api/cursos` | autenticado |
-| POST/PUT/DELETE | `/api/cursos` | ADMIN/GESTOR |
+| POST/PUT/DELETE | `/api/cursos` | GESTOR |
 | GET | `/api/salas` | autenticado |
 | GET | `/api/salas?cursoId={id}` | autenticado (visibilidade setorizada) |
-| POST/PUT/DELETE | `/api/salas` | ADMIN/GESTOR |
+| POST/PUT/DELETE | `/api/salas` | GESTOR |
 | GET | `/api/reservas/minhas` | autenticado |
 | GET | `/api/reservas/outros` | autenticado |
 | GET | `/api/reservas/agenda?salaId=&data=` | autenticado |
@@ -115,7 +115,7 @@ O Vite faz proxy de `/api` para `localhost:8080`, então não há problema de CO
 - **Salas** → cards das salas visíveis ao curso
 - **Minhas Reservas** → suas reservas (cancelar) + reservas de outros (propor troca)
 - **Propostas** → abas Recebidas (aceitar/recusar) e Enviadas, com badge de pendentes
-- **Admin** → só para ADMIN/GESTOR; gerencia Salas e Cursos. O admin também navega em todas as abas de solicitante.
+- **Admin** → só para GESTOR; gerencia Salas e Cursos. O gestor também navega em todas as abas de solicitante.
 
 ---
 
