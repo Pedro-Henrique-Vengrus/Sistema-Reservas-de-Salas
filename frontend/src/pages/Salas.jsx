@@ -3,16 +3,24 @@ import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Salas() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [salas, setSalas] = useState([]);
   const [erro, setErro] = useState('');
+
+  const semCurso = !isAdmin && !user?.cursoId;
 
   useEffect(() => {
     (async () => {
       try {
-        // Admin/gestor (sem curso) ve todas; solicitante ve as do seu curso
-        const q = user?.cursoId ? `/salas?cursoId=${user.cursoId}` : '/salas';
-        setSalas(await api.get(q));
+        // Quem ve todas e decidido pela ROLE (GESTOR), nao pela ausencia de curso.
+        // Solicitante ve so as do seu curso; sem curso vinculado, nao ve nenhuma.
+        if (isAdmin) {
+          setSalas(await api.get('/salas'));
+        } else if (user?.cursoId) {
+          setSalas(await api.get(`/salas?cursoId=${user.cursoId}`));
+        } else {
+          setSalas([]);
+        }
       } catch (e) { setErro(e.message); }
     })();
   }, []);
@@ -22,6 +30,7 @@ export default function Salas() {
       <h1>Todas as Salas</h1>
       <p className="lead">Ambientes disponíveis para o seu curso</p>
       {erro && <p className="error">{erro}</p>}
+      {semCurso && <p className="error">Você não está vinculado a nenhum curso. Contate o gestor.</p>}
       <div className="grid">
         {salas.map((s) => (
           <div className="card" key={s.id}>
@@ -38,7 +47,7 @@ export default function Salas() {
             </div>
           </div>
         ))}
-        {salas.length === 0 && <p className="muted">Nenhuma sala visível para seu curso.</p>}
+        {!semCurso && salas.length === 0 && <p className="muted">Nenhuma sala visível para seu curso.</p>}
       </div>
     </div>
   );

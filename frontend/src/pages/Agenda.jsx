@@ -30,11 +30,19 @@ export default function Agenda() {
     setTimeout(() => setToast(''), 3000);
   }
 
-  // Carrega salas visiveis (visibilidade setorizada pelo curso do usuario)
+  const semCurso = !isAdmin && !user?.cursoId;
+
+  // Visibilidade setorizada decidida pela ROLE (GESTOR ve todas); solicitante ve so as do seu
+  // curso; solicitante sem curso vinculado nao ve nenhuma sala.
   async function carregarSalas() {
     try {
-      const q = user?.cursoId ? `/salas?cursoId=${user.cursoId}` : '/salas';
-      setSalas(await api.get(q));
+      if (isAdmin) {
+        setSalas(await api.get('/salas'));
+      } else if (user?.cursoId) {
+        setSalas(await api.get(`/salas?cursoId=${user.cursoId}`));
+      } else {
+        setSalas([]);
+      }
     } catch (e) { setErro(e.message); }
   }
 
@@ -136,6 +144,7 @@ export default function Agenda() {
         <>
           <h1>🏛 Selecione uma Sala</h1>
           <p className="lead">Data: {data} · mostrando salas do seu curso</p>
+          {semCurso && <p className="error">Você não está vinculado a nenhum curso. Contate o gestor.</p>}
           <input placeholder="🔍 Buscar sala..." value={busca} onChange={(e) => setBusca(e.target.value)} />
           <div style={{ marginTop: 16 }}>
             {salasFiltradas.map((s) => (
@@ -150,7 +159,7 @@ export default function Agenda() {
                 <span className="muted">→</span>
               </div>
             ))}
-            {salasFiltradas.length === 0 && <p className="muted">Nenhuma sala visível para seu curso.</p>}
+            {!semCurso && salasFiltradas.length === 0 && <p className="muted">Nenhuma sala visível para seu curso.</p>}
           </div>
           <button className="btn btn-outline btn-sm" style={{ marginTop: 12 }} onClick={() => setEtapa(1)}>← Voltar</button>
         </>

@@ -1,7 +1,9 @@
 package br.unifil.campusflow.service;
 
 import br.unifil.campusflow.domain.Curso;
+import br.unifil.campusflow.domain.Role;
 import br.unifil.campusflow.domain.Sala;
+import br.unifil.campusflow.domain.Usuario;
 import br.unifil.campusflow.dto.SalaRequest;
 import br.unifil.campusflow.exception.RecursoNaoEncontradoException;
 import br.unifil.campusflow.repository.CursoRepository;
@@ -32,6 +34,18 @@ public class SalaService {
     // Salas visiveis ao curso do solicitante (visibilidade setorizada)
     public List<Sala> listarVisiveisPorCurso(Long cursoId) {
         return salaRepository.findVisiveisPorCurso(cursoId);
+    }
+
+    // Visibilidade setorizada decidida pela ROLE do usuario logado, nunca pelo cursoId vindo do cliente:
+    // GESTOR ve todas (o cursoId, se informado, so filtra dentro desse universo);
+    // solicitante ve apenas as do PROPRIO curso (o cursoId do parametro e ignorado);
+    // solicitante sem curso vinculado nao ve nenhuma sala.
+    public List<Sala> listarVisiveis(Usuario usuarioLogado, Long cursoIdParam) {
+        if (usuarioLogado.getRole() == Role.GESTOR) {
+            return (cursoIdParam != null) ? listarVisiveisPorCurso(cursoIdParam) : listarTodas();
+        }
+        Curso curso = usuarioLogado.getCurso();
+        return (curso != null) ? listarVisiveisPorCurso(curso.getId()) : List.of();
     }
 
     public Sala buscarPorId(Long id) {
