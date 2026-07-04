@@ -21,6 +21,12 @@ public class PropostaTroca {
     @JoinColumn(name = "id_usuario_solicitante")
     private Usuario usuarioSolicitante;
 
+    // Reserva do proponente, oferecida em troca da reservaOrigem.
+    // Nullable: propostas criadas antes do modelo de troca mutua nao tem esta reserva.
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_reserva_oferecida")
+    private Reserva reservaOferecida;
+
     @Column(nullable = false, length = 500)
     private String justificativa;
 
@@ -42,6 +48,8 @@ public class PropostaTroca {
     public void setReservaOrigem(Reserva r) { this.reservaOrigem = r; }
     public Usuario getUsuarioSolicitante() { return usuarioSolicitante; }
     public void setUsuarioSolicitante(Usuario u) { this.usuarioSolicitante = u; }
+    public Reserva getReservaOferecida() { return reservaOferecida; }
+    public void setReservaOferecida(Reserva r) { this.reservaOferecida = r; }
     public String getJustificativa() { return justificativa; }
     public void setJustificativa(String j) { this.justificativa = j; }
     public String getStatus() { return status; }

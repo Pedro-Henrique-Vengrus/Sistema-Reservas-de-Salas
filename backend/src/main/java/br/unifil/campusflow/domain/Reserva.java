@@ -34,7 +34,7 @@ public class Reserva {
     private String tipoReserva = "GRADE_BIMESTRAL";
 
     @Column(nullable = false, length = 50)
-    private String status = "CONFIRMADA";
+    private String status = "PENDENTE";
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();

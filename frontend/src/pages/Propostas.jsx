@@ -63,8 +63,12 @@ export default function Propostas() {
               : `Você → ${p.donoNome}`}
           </strong>
           <div className="info-box" style={{ marginTop: 10, background: '#f0f7ff', borderColor: '#bfdbfe' }}>
-            📍 Sala desejada:<br />
+            📍 Sala desejada (de {aba === 'recebidas' ? 'você' : p.donoNome}):<br />
             <strong>{p.salaNome}</strong> – {p.dataHoraDesejada}
+          </div>
+          <div className="info-box" style={{ marginTop: 8 }}>
+            ⇄ Sala oferecida (de {aba === 'recebidas' ? p.solicitanteNome : 'você'}):<br />
+            <strong>{p.salaOferecidaNome}</strong> – {p.dataHoraOferecida}
           </div>
           <p className="muted" style={{ fontStyle: 'italic', marginTop: 8 }}>"{p.justificativa}"</p>
 

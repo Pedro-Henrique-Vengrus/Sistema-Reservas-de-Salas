@@ -10,17 +10,28 @@ import java.util.List;
 public interface PropostaTrocaRepository extends JpaRepository<PropostaTroca, Long> {
 
     // Propostas enviadas por mim
-    @Query("SELECT p FROM PropostaTroca p JOIN FETCH p.reservaOrigem r JOIN FETCH r.sala JOIN FETCH r.solicitante JOIN FETCH p.usuarioSolicitante WHERE p.usuarioSolicitante.id = :usuarioId ORDER BY p.dataCriacao DESC")
+    // LEFT JOIN FETCH em reservaOferecida: propostas antigas (pre troca-mutua) podem nao ter essa reserva
+    @Query("SELECT p FROM PropostaTroca p JOIN FETCH p.reservaOrigem r JOIN FETCH r.sala JOIN FETCH r.solicitante JOIN FETCH p.usuarioSolicitante LEFT JOIN FETCH p.reservaOferecida o LEFT JOIN FETCH o.sala WHERE p.usuarioSolicitante.id = :usuarioId ORDER BY p.dataCriacao DESC")
     List<PropostaTroca> findEnviadas(@Param("usuarioId") Long usuarioId);
 
     // Propostas recebidas: onde a reserva alvo e minha
-    @Query("SELECT p FROM PropostaTroca p JOIN FETCH p.reservaOrigem r JOIN FETCH r.sala JOIN FETCH r.solicitante JOIN FETCH p.usuarioSolicitante WHERE r.solicitante.id = :donoId ORDER BY p.dataCriacao DESC")
+    @Query("SELECT p FROM PropostaTroca p JOIN FETCH p.reservaOrigem r JOIN FETCH r.sala JOIN FETCH r.solicitante JOIN FETCH p.usuarioSolicitante LEFT JOIN FETCH p.reservaOferecida o LEFT JOIN FETCH o.sala WHERE r.solicitante.id = :donoId ORDER BY p.dataCriacao DESC")
     List<PropostaTroca> findRecebidas(@Param("donoId") Long donoId);
 
     // Contagem de pendentes recebidas (badge)
     @Query("SELECT COUNT(p) FROM PropostaTroca p WHERE p.reservaOrigem.solicitante.id = :donoId AND p.status = 'PENDENTE'")
     long countPendentesRecebidas(@Param("donoId") Long donoId);
 
-    @Query("SELECT p FROM PropostaTroca p JOIN FETCH p.reservaOrigem r JOIN FETCH r.sala JOIN FETCH r.solicitante JOIN FETCH p.usuarioSolicitante WHERE p.id = :id")
+    @Query("SELECT p FROM PropostaTroca p JOIN FETCH p.reservaOrigem r JOIN FETCH r.sala JOIN FETCH r.solicitante JOIN FETCH p.usuarioSolicitante LEFT JOIN FETCH p.reservaOferecida o LEFT JOIN FETCH o.sala WHERE p.id = :id")
     java.util.Optional<PropostaTroca> findByIdComDados(@Param("id") Long id);
+
+    // Outras propostas pendentes que envolvem qualquer uma das reservas informadas (origem ou oferecida),
+    // usada para invalidar propostas concorrentes apos uma troca ser aceita
+    @Query("""
+        SELECT p FROM PropostaTroca p
+        WHERE p.status = 'PENDENTE'
+          AND p.id <> :excluirId
+          AND (p.reservaOrigem.id IN :reservaIds OR p.reservaOferecida.id IN :reservaIds)
+        """)
+    List<PropostaTroca> findPendentesEnvolvendo(@Param("reservaIds") List<Long> reservaIds, @Param("excluirId") Long excluirId);
 }

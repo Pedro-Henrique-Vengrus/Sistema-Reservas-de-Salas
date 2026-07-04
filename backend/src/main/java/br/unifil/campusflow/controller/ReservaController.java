@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservas")
@@ -48,5 +49,30 @@ public class ReservaController {
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {
         reservaService.cancelar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/pendentes")
+    public List<ReservaResponse> pendentes() {
+        return reservaService.pendentes().stream().map(ReservaResponse::from).toList();
+    }
+
+    @GetMapping("/pendentes/count")
+    public Map<String, Long> pendentesCount() {
+        return Map.of("count", reservaService.countPendentes());
+    }
+
+    @PostMapping("/{id}/aprovar")
+    public ReservaResponse aprovar(@PathVariable Long id) {
+        return ReservaResponse.from(reservaService.aprovar(id));
+    }
+
+    @PostMapping("/{id}/recusar")
+    public ReservaResponse recusar(@PathVariable Long id) {
+        return ReservaResponse.from(reservaService.recusar(id));
+    }
+
+    @GetMapping("/todas")
+    public List<ReservaResponse> todas() {
+        return reservaService.todas().stream().map(ReservaResponse::from).toList();
     }
 }

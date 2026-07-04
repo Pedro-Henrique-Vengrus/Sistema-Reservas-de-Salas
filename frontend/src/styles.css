@@ -84,6 +84,7 @@ textarea { resize: vertical; min-height: 70px; }
 .slot { padding: 14px; text-align: center; border-radius: 8px; border: 1px solid #bbf7d0; background: #dcfce7; cursor: pointer; font-size: 14px; }
 .slot:hover { background: #bbf7d0; }
 .slot.ocupado { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
+.slot.pendente { background: #fef9c3; border-color: #fde68a; color: #a16207; }
 .slot.sel { background: var(--cf-green); color: #fff; border-color: var(--cf-green); }
 
 .list-item { background: #fff; border: 1px solid var(--cf-border); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }

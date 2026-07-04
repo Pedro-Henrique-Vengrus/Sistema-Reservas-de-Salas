@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 
 public record PropostaRequest(
     @NotNull Long reservaOrigemId,
+    @NotNull(message = "Selecione uma reserva sua para oferecer na troca")
+    Long reservaOferecidaId,
     @NotBlank(message = "A justificativa e obrigatoria")
     @Size(max = 500)
     String justificativa

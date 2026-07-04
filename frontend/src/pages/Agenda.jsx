@@ -9,7 +9,7 @@ function hoje() {
 }
 
 export default function Agenda() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [etapa, setEtapa] = useState(1); // 1=data, 2=sala, 3=horario
   const [data, setData] = useState(hoje());
   const [salas, setSalas] = useState([]);
@@ -22,6 +22,8 @@ export default function Agenda() {
   const [toast, setToast] = useState('');
   const [modal, setModal] = useState(null); // reserva ocupada para troca
   const [erro, setErro] = useState('');
+  const [usuarios, setUsuarios] = useState([]);
+  const [usuarioAlvoId, setUsuarioAlvoId] = useState('');
 
   function showToast(msg) {
     setToast(msg);
@@ -35,6 +37,12 @@ export default function Agenda() {
       setSalas(await api.get(q));
     } catch (e) { setErro(e.message); }
   }
+
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/usuarios').then(setUsuarios).catch((e) => setErro(e.message));
+    }
+  }, [isAdmin]);
 
   async function carregarAgendaDaSala(s) {
     try {
@@ -73,33 +81,34 @@ export default function Agenda() {
   function clicarSlot(h) {
     const ocup = slotOcupado(h);
     if (ocup) {
-      setModal(ocup); // abre modal de troca
+      if (isAdmin) {
+        showToast('Horário ocupado. Admin não propõe troca de sala.');
+      } else if (ocup.status === 'CONFIRMADA') {
+        setModal(ocup); // abre modal de troca
+      } else {
+        showToast('Horário já solicitado, aguardando aprovação do Admin.');
+      }
     } else {
-      function clicarSlot(h) {
-        const ocup = slotOcupado(h);
-        if (ocup) {
-          setModal(ocup);
-    }     else {
-          setSlotSel(h);
-          setHoraInicio(h);
-          const [hh, mm] = h.split(':').map(Number);
-          setHoraFim(`${String(hh + 1).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);
-    }
-  }
+      setSlotSel(h);
+      setHoraInicio(h);
+      const [hh, mm] = h.split(':').map(Number);
+      setHoraFim(`${String(hh + 1).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);
     }
   }
 
   async function reservar() {
     if (!horaInicio || !horaFim) { showToast('Preencha início e término'); return; }
     if (horaFim <= horaInicio) { showToast('O término deve ser depois do início'); return; }
+    if (isAdmin && !usuarioAlvoId) { showToast('Selecione o usuário para quem a sala será reservada'); return; }
     setErro('');
     try {
       await api.post('/reservas', {
         salaId: sala.id, data,
         horaInicio: `${horaInicio}:00`, horaFim: `${horaFim}:00`,
         tipoReserva: 'GRADE_BIMESTRAL',
+        usuarioId: isAdmin ? Number(usuarioAlvoId) : undefined,
       });
-      showToast('✓ Reserva criada!');
+      showToast(isAdmin ? '✓ Reserva confirmada!' : '✓ Reserva enviada para aprovação do Admin!');
       carregarAgendaDaSala(sala);
       setHoraInicio(''); setHoraFim('');
     } catch (e) { setErro(e.message); }
@@ -158,10 +167,24 @@ export default function Agenda() {
           <div className="slot-grid">
             {HORARIOS.map((h) => {
               const ocup = slotOcupado(h);
-              const cls = ocup ? 'slot ocupado' : (slotSel === h ? 'slot sel' : 'slot');
-              return <div key={h} className={cls} onClick={() => clicarSlot(h)}>{h}</div>;
+              let cls = 'slot';
+              if (ocup) cls += ocup.status === 'CONFIRMADA' ? ' ocupado' : ' pendente';
+              else if (slotSel === h) cls += ' sel';
+              return <div key={h} className={cls} title={ocup && ocup.status !== 'CONFIRMADA' ? 'Aguardando aprovação do Admin' : undefined} onClick={() => clicarSlot(h)}>{h}</div>;
             })}
           </div>
+
+          {isAdmin && (
+            <>
+              <label>Reservar para</label>
+              <select value={usuarioAlvoId} onChange={(e) => setUsuarioAlvoId(e.target.value)}>
+                <option value="">Selecione o usuário...</option>
+                {usuarios.map((u) => (
+                  <option key={u.id} value={u.id}>{u.nome} ({u.role})</option>
+                ))}
+              </select>
+            </>
+          )}
 
          <label>Horário de início</label>
           <input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} />
@@ -191,15 +214,24 @@ export default function Agenda() {
 
 function ModalTroca({ reserva, onClose, onSucesso }) {
   const [justificativa, setJustificativa] = useState('');
+  const [reservaOferecidaId, setReservaOferecidaId] = useState('');
+  const [minhas, setMinhas] = useState(null); // null = carregando
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
 
+  useEffect(() => {
+    api.get('/reservas/minhas')
+      .then((lista) => setMinhas(lista.filter((r) => r.status === 'CONFIRMADA')))
+      .catch((e) => setErro(e.message));
+  }, []);
+
   async function enviar() {
+    if (!reservaOferecidaId) { setErro('Selecione qual das suas salas você quer oferecer.'); return; }
     if (!justificativa.trim()) { setErro('A justificativa é obrigatória.'); return; }
     setEnviando(true);
     setErro('');
     try {
-      await api.post('/propostas', { reservaOrigemId: reserva.id, justificativa });
+      await api.post('/propostas', { reservaOrigemId: reserva.id, reservaOferecidaId: Number(reservaOferecidaId), justificativa });
       onSucesso();
     } catch (e) { setErro(e.message); setEnviando(false); }
   }
@@ -213,12 +245,32 @@ function ModalTroca({ reserva, onClose, onSucesso }) {
           {reserva.data} às {reserva.horaInicio.slice(0, 5)}<br />
           Reservado por: <strong>{reserva.solicitanteNome}</strong>
         </div>
-        <label>Justificativa para a troca</label>
-        <textarea value={justificativa} onChange={(e) => setJustificativa(e.target.value)}
-          placeholder="Explique por que precisa desta sala/horário..." />
+
+        {minhas && minhas.length === 0 && (
+          <p className="error">Você precisa de uma reserva confirmada para propor troca.</p>
+        )}
+
+        {minhas && minhas.length > 0 && (
+          <>
+            <label>Sua sala oferecida em troca</label>
+            <select value={reservaOferecidaId} onChange={(e) => setReservaOferecidaId(e.target.value)}>
+              <option value="">Selecione...</option>
+              {minhas.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.salaNome} · {r.data} às {r.horaInicio.slice(0, 5)}
+                </option>
+              ))}
+            </select>
+
+            <label>Justificativa para a troca</label>
+            <textarea value={justificativa} onChange={(e) => setJustificativa(e.target.value)}
+              placeholder="Explique por que precisa desta sala/horário..." />
+          </>
+        )}
+
         {erro && <p className="error">{erro}</p>}
         <div className="modal-actions">
-          <button className="btn btn-blue" onClick={enviar} disabled={enviando}>
+          <button className="btn btn-blue" onClick={enviar} disabled={enviando || !minhas || minhas.length === 0}>
             ⇄ Propor Troca de Sala
           </button>
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>

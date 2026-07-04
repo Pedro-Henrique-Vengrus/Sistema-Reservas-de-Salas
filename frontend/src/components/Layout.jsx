@@ -7,12 +7,19 @@ export default function Layout() {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [pendentes, setPendentes] = useState(0);
+  const [reservasPendentes, setReservasPendentes] = useState(0);
 
   async function carregarBadge() {
     try {
       const r = await api.get('/propostas/pendentes/count');
       setPendentes(r.count || 0);
     } catch (_) { /* silencioso */ }
+    if (isAdmin) {
+      try {
+        const r = await api.get('/reservas/pendentes/count');
+        setReservasPendentes(r.count || 0);
+      } catch (_) { /* silencioso */ }
+    }
   }
 
   useEffect(() => {
@@ -43,7 +50,11 @@ export default function Layout() {
         <NavLink to="/propostas">
           ✉ Propostas {pendentes > 0 && <span className="badge">{pendentes}</span>}
         </NavLink>
-        {isAdmin && <NavLink to="/admin">⚙ Admin</NavLink>}
+        {isAdmin && (
+          <NavLink to="/admin">
+            ⚙ Admin {reservasPendentes > 0 && <span className="badge">{reservasPendentes}</span>}
+          </NavLink>
+        )}
       </div>
 
       <Outlet />
