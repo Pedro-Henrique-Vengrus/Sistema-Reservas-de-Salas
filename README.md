@@ -1,33 +1,47 @@
 # 🏫 CampusFlow
 
-Sistema acadêmico de reserva de salas — entrega NPI/UniFil.
-Esta base entrega **dois casos de uso completos** (Gerenciar Salas e Gerenciar Cursos)
-em full-stack: **Spring Boot 3.3 + Java 21 + PostgreSQL** no backend e **React + Vite** no frontend.
+Sistema acadêmico de reserva de salas e laboratórios — entrega NPI/UniFil.
+**Spring Boot 3.3 + Java 21 + PostgreSQL 16** no backend, **React 18 + Vite** no frontend,
+com interface **desktop/web-first** (tabelas densas, dashboards e painel administrativo completo).
 
 > Autor: Pedro Henrique Vengrus — Projeto Acadêmico, UniFil
 
 ---
 
-## 🧱 O que já está pronto nesta base
+## 🎯 Regras de negócio implementadas
 
-- **Auth JWT stateless** (access token de 1h) com login real contra o banco.
-- **RBAC**: leitura para qualquer autenticado, escrita (CRUD) só para `GESTOR`.
-- **Curso**: CRUD completo.
-- **Sala**: CRUD completo + **vínculo N:N com Curso** (visibilidade setorizada).
-- **Flyway** V1–V3 (schema + seed com os usuários de teste).
-- **Swagger/OpenAPI** em `/swagger-ui`.
-- **Tratamento padrão de erros** (401/403/404/409/422/500).
-- **Frontend**: login + painel admin com as duas telas de CRUD, guard de rota e interceptor HTTP.
+### Visibilidade setorizada (regra central)
+`Usuário N:N Curso` e `Sala N:N Curso`. Um solicitante só **vê, lista e reserva** ambientes
+ligados a pelo menos um dos seus cursos **ativos**. A regra é aplicada em um único ponto
+(`VisibilidadeService`) e vale tanto para a listagem quanto para a criação de reservas e
+para as propostas de troca — nunca depende de parâmetro enviado pelo cliente.
 
-### Credenciais de teste (senha = `123`)
-| Email | Papel |
+### Modos de reserva
+| Modo | Comportamento |
 |---|---|
-| pedro@campus.br | PROFESSOR |
-| joao@campus.br | COORDENADOR |
-| admin@campus.br | GESTOR |
+| `GRADE_BIMESTRAL` | Só pode ser lançada com o **período da grade aberto**. Sem conflito de sala/horário, nasce `APROVADA`. |
+| `ULTIMA_HORA` | Eventos e aulas extras. Sempre nasce `PENDENTE_APROVACAO` e entra na fila de moderação. |
 
-> Login funciona com qualquer usuário, mas as telas de CRUD exigem `GESTOR`.
-> Entre como **admin@campus.br** para ver os dois casos de uso.
+O painel administrativo lança reservas em nome de terceiros já aprovadas, inclusive com a grade fechada.
+
+### Troca de salas
+Pré-requisito: os dois professores precisam ter reservas **ativas, aprovadas, no mesmo dia e no mesmo turno**.
+A justificativa é obrigatória, o professor receptor aceita ou recusa, a troca é **mútua** (cada um assume a
+reserva do outro) e **ambos recebem notificação**. Propostas concorrentes envolvendo as mesmas reservas
+são invalidadas automaticamente.
+
+### Ciclo de vida e exclusão lógica
+`ATIVO → INATIVO (soft-delete) → exclusão física`, para Curso, Sala e Usuário.
+Ao inativar sala ou curso com reservas futuras ativas, o sistema **bloqueia** e devolve o impacto
+(HTTP 409 com `detalhes`); o administrador confirma explicitamente (`?forcar=true`) e então as reservas
+são canceladas e os solicitantes notificados. A exclusão física exige registro inativo e sem histórico.
+
+### Perfis
+| Perfil | Painel administrativo | Solicita reservas |
+|---|---|---|
+| `PROFESSOR` | — | ✅ |
+| `REITOR` | ✅ | ✅ |
+| `ADMIN` | ✅ | — (lança em nome de terceiros) |
 
 ---
 
@@ -35,58 +49,89 @@ em full-stack: **Spring Boot 3.3 + Java 21 + PostgreSQL** no backend e **React +
 
 - **Java 21** (`java -version`)
 - **Node 18+** (`node -v`)
-- **PostgreSQL 16** — ou Docker (recomendado, mais simples)
-- **Git**
+- **PostgreSQL 16** — ou Docker (recomendado)
+- **Maven** (ou o wrapper `./mvnw`, se gerado)
 
----
-
-## 🚀 Passo a passo (do zero)
+## 🚀 Passo a passo
 
 ### 1. Subir o PostgreSQL
 
-**Opção A — Docker (recomendado):**
 ```bash
 docker compose up -d
 ```
-Isso cria o banco `campusflow` com usuário/senha `campusflow`/`campusflow` na porta 5432.
 
-**Opção B — Postgres instalado localmente:**
+Cria o banco `campusflow` com usuário/senha `campusflow`/`campusflow` na porta 5432.
+Sem Docker, crie manualmente:
+
 ```sql
 CREATE DATABASE campusflow;
 CREATE USER campusflow WITH PASSWORD 'campusflow';
 GRANT ALL PRIVILEGES ON DATABASE campusflow TO campusflow;
 ```
-Se usar credenciais diferentes, ajuste `backend/src/main/resources/application.yml`.
 
-### 2. Gerar o Maven Wrapper (uma vez só)
+### 2. Rodar o backend
 
-Na primeira vez, dentro de `backend/`, gere os scripts do wrapper:
 ```bash
 cd backend
-mvn wrapper:wrapper
+mvn spring-boot:run      # ou ./mvnw spring-boot:run
 ```
-> Se você **não** tem o `mvn` instalado, instale o Maven uma vez (`sdk install maven` ou via gerenciador do SO),
-> rode o comando acima, e depois disso o `./mvnw` funciona sozinho.
 
-### 3. Rodar o backend
-```bash
-cd backend
-./mvnw spring-boot:run
-```
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui
 
-O Flyway cria as tabelas e insere os dados de teste automaticamente na primeira execução.
+O Flyway aplica as migrations **V1–V12** e insere os dados de demonstração na primeira execução.
+
+### 3. Rodar os testes
+
+```bash
+cd backend && mvn test
+```
+
+33 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
+visibilidade setorizada, pré-requisito e efetivação da troca, inativação forçada e derivação de turno.
 
 ### 4. Rodar o frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-- App: http://localhost:5173
 
-O Vite faz proxy de `/api` para `localhost:8080`, então não há problema de CORS em dev.
+App em http://localhost:5173 (o Vite faz proxy de `/api` para `localhost:8080`).
+
+---
+
+## 👥 Contas de demonstração (senha `123`)
+
+| E-mail | Perfil | Cursos | Observação |
+|---|---|---|---|
+| `admin@campus.br` | ADMIN | — | Painel completo, sem reservas próprias |
+| `reitor@campus.br` | REITOR | CC, ENG | Painel completo **e** reservas próprias |
+| `pedro@campus.br` | PROFESSOR | CC | — |
+| `joao@campus.br` | PROFESSOR | CC, ENG | Tem reserva no mesmo turno do Pedro (testar troca) |
+| `carla@campus.br` | PROFESSOR | ENG | Não enxerga a Sala 1001 (testar visibilidade) |
+
+---
+
+## 🖥️ Telas
+
+**Solicitante**
+- **Painel** — KPIs pessoais, estado da grade e próxima semana.
+- **Agenda** — grade **ambientes × horários** com filtros laterais; horário livre abre o formulário de reserva, horário ocupado abre o detalhe e a proposta de troca.
+- **Ambientes** — catálogo filtrável dos ambientes visíveis ao perfil.
+- **Minhas reservas** — tabela com abas Ativas/Histórico e cancelamento.
+- **Trocas de sala** — propostas recebidas e enviadas, com detalhe lado a lado e cancelamento.
+
+**Administração (ADMIN e REITOR)**
+- **Painel** — métricas de reservas, ocupação por ambiente e por curso.
+- **Moderação** — fila de aprovação/recusa das solicitações de última hora.
+- **Usuários** — CRUD com exclusão lógica e atribuição de cursos.
+- **Ambientes / Cursos** — CRUD com o ciclo de vida completo e diálogo de impacto.
+- **Período da grade** — liberação do preenchimento bimestral, com vigência opcional.
+- **Relatórios** — consulta filtrada e paginada + exportação CSV.
+
+O sino do cabeçalho concentra as notificações (trocas, moderação, cancelamentos forçados).
 
 ---
 
@@ -95,27 +140,26 @@ O Vite faz proxy de `/api` para `localhost:8080`, então não há problema de CO
 | Método | Rota | Acesso |
 |---|---|---|
 | POST | `/api/auth/login` | público |
-| GET | `/api/cursos` | autenticado |
-| POST/PUT/DELETE | `/api/cursos` | GESTOR |
-| GET | `/api/salas` | autenticado |
-| GET | `/api/salas?cursoId={id}` | autenticado (visibilidade setorizada) |
-| POST/PUT/DELETE | `/api/salas` | GESTOR |
-| GET | `/api/reservas/minhas` | autenticado |
-| GET | `/api/reservas/outros` | autenticado |
-| GET | `/api/reservas/agenda?salaId=&data=` | autenticado |
-| POST | `/api/reservas` | autenticado (bloqueia conflito de horário) |
-| DELETE | `/api/reservas/{id}` | autenticado (só o dono) |
-| GET | `/api/propostas/recebidas` · `/enviadas` | autenticado |
-| POST | `/api/propostas` | autenticado (justificativa obrigatória) |
-| POST | `/api/propostas/{id}/aceitar` · `/recusar` | dono da reserva |
+| GET | `/api/usuarios/me` · `/api/notificacoes/**` | autenticado |
+| GET | `/api/salas` (filtros: `termo`, `tipo`, `cursoId`, `capacidadeMinima`, `status`) | autenticado (visibilidade setorizada) |
+| GET | `/api/salas/tipos` · `/api/cursos` | autenticado |
+| POST/PUT | `/api/salas` · `/api/cursos` | ADMIN, REITOR |
+| DELETE | `/api/salas/{id}?forcar=` · `/api/cursos/{id}?forcar=` | ADMIN, REITOR (inativação) |
+| DELETE | `/api/salas/{id}/permanente` · `/api/cursos/{id}/permanente` | ADMIN, REITOR (exclusão física) |
+| GET | `/api/salas/{id}/impacto` · `/api/cursos/{id}/impacto` | ADMIN, REITOR |
+| GET/POST/PUT/DELETE | `/api/usuarios/**` | ADMIN, REITOR |
+| GET | `/api/reservas/minhas` · `/api/reservas/agenda` · `/api/reservas/trocaveis` | autenticado |
+| POST | `/api/reservas` | autenticado (valida visibilidade, conflito e modo) |
+| DELETE | `/api/reservas/{id}` | dono ou perfil administrativo |
+| GET | `/api/reservas/moderacao` · POST `/api/reservas/{id}/aprovar` · `/recusar` | ADMIN, REITOR |
+| GET | `/api/reservas` (busca filtrada e paginada) | ADMIN, REITOR |
+| GET/POST | `/api/propostas/**` (`aceitar`, `recusar`, `cancelar`) | autenticado |
+| GET | `/api/periodo-grade` | autenticado |
+| PUT | `/api/periodo-grade` | ADMIN, REITOR |
+| GET | `/api/relatorios/dashboard` · `/api/relatorios/reservas.csv` | ADMIN, REITOR |
 
-### Telas (frontend)
-- **Login** → entra e redireciona para Agenda
-- **Agenda** → fluxo data → sala → horário; slot ocupado abre modal de proposta de troca
-- **Salas** → cards das salas visíveis ao curso
-- **Minhas Reservas** → suas reservas (cancelar) + reservas de outros (propor troca)
-- **Propostas** → abas Recebidas (aceitar/recusar) e Enviadas, com badge de pendentes
-- **Admin** → só para GESTOR; gerencia Salas e Cursos. O gestor também navega em todas as abas de solicitante.
+Erros seguem um formato único (`ApiError`): 401, **403** (visibilidade/perfil), 404,
+**409** (conflito ou confirmação necessária, com `detalhes` do impacto), 422 (validação) e 500.
 
 ---
 
@@ -123,53 +167,44 @@ O Vite faz proxy de `/api` para `localhost:8080`, então não há problema de CO
 
 ```
 campusflow/
-├─ docker-compose.yml      # Postgres para dev
-├─ backend/                # Spring Boot 3.3 / Java 21
-│  ├─ pom.xml
-│  └─ src/main/
-│     ├─ java/br/unifil/campusflow/
-│     │  ├─ config/        # SecurityConfig
-│     │  ├─ security/      # JWT (service, filtro, userdetails)
-│     │  ├─ domain/        # Curso, Sala, Usuario, Role
-│     │  ├─ dto/           # records request/response
-│     │  ├─ repository/    # Spring Data JPA
-│     │  ├─ service/       # regras de negócio
-│     │  ├─ controller/    # Auth, Curso, Sala
-│     │  └─ exception/     # handler global
-│     └─ resources/
-│        ├─ application.yml
-│        └─ db/migration/  # Flyway V1, V2, V3
-└─ frontend/               # React + Vite
+├─ docker-compose.yml            # Postgres para dev
+├─ backend/                      # Spring Boot 3.3 / Java 21
+│  └─ src/
+│     ├─ main/java/br/unifil/campusflow/
+│     │  ├─ config/              # SecurityConfig (RBAC ADMIN/REITOR)
+│     │  ├─ security/            # JWT, UsuarioLogado
+│     │  ├─ domain/              # entidades + enums (Turno, StatusReserva, TipoReserva…)
+│     │  ├─ dto/                 # records request/response
+│     │  ├─ repository/          # Spring Data JPA
+│     │  ├─ service/             # regras de negócio
+│     │  ├─ controller/          # REST
+│     │  └─ exception/           # handler global
+│     ├─ main/resources/db/migration/   # Flyway V1–V12
+│     └─ test/java/…/service/    # testes das regras críticas
+└─ frontend/                     # React 18 + Vite
    └─ src/
-      ├─ api/client.js     # fetch + interceptor de token
-      ├─ auth/             # AuthContext + ProtectedRoute
-      ├─ components/       # Topbar, GerenciarSalas, GerenciarCursos
-      └─ pages/            # Login, AdminPanel
+      ├─ api/client.js           # fetch + token + erros tipados + download CSV
+      ├─ auth/                   # AuthContext + ProtectedRoute
+      ├─ components/             # AppShell, notificações
+      │  └─ ui/                  # DataTable, Modal, Drawer, Toast, primitives
+      ├─ lib/format.js           # formatação pt-BR
+      ├─ pages/                  # Dashboard, Agenda, Ambientes, MinhasReservas, Trocas, Login
+      │  └─ admin/               # Moderação, Usuários, Salas, Cursos, PeríodoGrade, Relatórios
+      └─ styles/                 # tokens.css, base.css, components.css
 ```
 
 ---
 
-## 📤 Subir no GitHub
+## 🗄️ Modelo de dados
 
-```bash
-# na raiz campusflow/
-git init
-git add .
-git commit -m "feat: base CampusFlow - casos de uso Sala e Curso (full-stack)"
-
-# crie um repo vazio no GitHub (sem README), copie a URL, e:
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/campusflow.git
-git push -u origin main
-```
-
-> O `.gitignore` já exclui `target/`, `node_modules/` e arquivos de IDE.
-
----
-
-## 🗒️ Notas sobre os diagramas
-
-Esta base usa **Sala N:N Curso** (tabela `tb_sala_curso`), que é o que sustenta a
-visibilidade setorizada da regra de negócio. Seus diagramas de **classe** e **ER** ainda
-mostram `cursoId` como FK única na sala e não trazem a entidade de vínculo — vale atualizá-los
-para refletir o N:N e incluir o `Curso` no diagrama de classes (que hoje está só no ER).
+| Tabela | Papel |
+|---|---|
+| `tb_usuario` | nome, e-mail, senha (BCrypt), `role`, `status` |
+| `tb_usuario_curso` | **N:N** usuário ↔ curso |
+| `tb_curso` | nome, sigla, `status` |
+| `tb_sala` | nome, código, `tipo` (catálogo), capacidade, andar, `status` |
+| `tb_sala_curso` | **N:N** sala ↔ curso (visibilidade setorizada) |
+| `tb_reserva` | solicitante, sala, data, horário, `turno`, `tipo_reserva`, `status`, observação |
+| `tb_proposta_troca` | reserva desejada, reserva oferecida, justificativa, `status` |
+| `tb_notificacao` | avisos in-app por destinatário |
+| `tb_periodo_grade` | linha única com a flag de liberação da grade bimestral |

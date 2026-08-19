@@ -16,8 +16,12 @@ public class Sala {
     @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(length = 50)
-    private String tipo;
+    @Column(length = 30)
+    private String codigo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private TipoAmbiente tipo = TipoAmbiente.SALA_AULA;
 
     @Column(nullable = false)
     private Integer capacidade = 0;
@@ -25,8 +29,9 @@ public class Sala {
     @Column(length = 50)
     private String andar;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String situacao = "ATIVA";
+    private StatusRegistro status = StatusRegistro.ATIVO;
 
     // Visibilidade setorizada: N:N com Curso
     @ManyToMany(fetch = FetchType.LAZY)
@@ -46,21 +51,24 @@ public class Sala {
     @Column(name = "data_desativacao")
     private LocalDateTime dataDesativacao;
 
-    @Column(nullable = false)
-    private Boolean ativo = true;
+    public boolean estaAtiva() {
+        return status == StatusRegistro.ATIVO;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = codigo; }
+    public TipoAmbiente getTipo() { return tipo; }
+    public void setTipo(TipoAmbiente tipo) { this.tipo = tipo; }
     public Integer getCapacidade() { return capacidade; }
     public void setCapacidade(Integer c) { this.capacidade = c; }
     public String getAndar() { return andar; }
     public void setAndar(String andar) { this.andar = andar; }
-    public String getSituacao() { return situacao; }
-    public void setSituacao(String s) { this.situacao = s; }
+    public StatusRegistro getStatus() { return status; }
+    public void setStatus(StatusRegistro status) { this.status = status; }
     public Set<Curso> getCursos() { return cursos; }
     public void setCursos(Set<Curso> cursos) { this.cursos = cursos; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
@@ -69,6 +77,4 @@ public class Sala {
     public void setDataModificacao(LocalDateTime d) { this.dataModificacao = d; }
     public LocalDateTime getDataDesativacao() { return dataDesativacao; }
     public void setDataDesativacao(LocalDateTime d) { this.dataDesativacao = d; }
-    public Boolean getAtivo() { return ativo; }
-    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 }
