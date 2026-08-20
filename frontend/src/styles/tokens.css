@@ -1,0 +1,72 @@
+/* =========================================================================
+   CampusFlow - Design tokens
+   Sistema desktop-first: densidade alta, cores institucionais UniFil,
+   escala de espacamento de 4px e tipografia legivel em telas largas.
+   ========================================================================= */
+
+:root {
+  /* --- Marca institucional --- */
+  --brand-900: #08281d;
+  --brand-800: #0d3527;
+  --brand-700: #114633;
+  --brand-600: #165a41;
+  --brand-500: #1c7150;
+  --brand-400: #2f8f68;
+  --brand-300: #6cb794;
+  --brand-100: #d9ece2;
+  --brand-050: #eef7f2;
+
+  /* --- Neutros --- */
+  --ink-900: #0f172a;
+  --ink-800: #1e293b;
+  --ink-700: #334155;
+  --ink-600: #475569;
+  --ink-500: #64748b;
+  --ink-400: #94a3b8;
+  --ink-300: #cbd5e1;
+  --ink-200: #e2e8f0;
+  --ink-100: #f1f5f9;
+  --ink-050: #f8fafc;
+  --white: #ffffff;
+
+  /* --- Semanticas de status --- */
+  --ok-fg: #15803d;    --ok-bg: #dcfce7;    --ok-br: #bbf7d0;
+  --warn-fg: #a16207;  --warn-bg: #fef9c3;  --warn-br: #fde68a;
+  --danger-fg: #b91c1c;--danger-bg: #fee2e2;--danger-br: #fecaca;
+  --info-fg: #1d4ed8;  --info-bg: #dbeafe;  --info-br: #bfdbfe;
+  --muted-fg: #475569; --muted-bg: #f1f5f9; --muted-br: #e2e8f0;
+
+  /* --- Superficies --- */
+  --surface: var(--white);
+  --surface-sunken: var(--ink-050);
+  --surface-raised: var(--white);
+  --border: var(--ink-200);
+  --border-strong: var(--ink-300);
+
+  /* --- Espacamento (escala de 4px) --- */
+  --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;  --sp-4: 16px;
+  --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px;  --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px;
+
+  /* --- Tipografia --- */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  --fs-xs: 11px; --fs-sm: 12px; --fs-md: 13px; --fs-base: 14px;
+  --fs-lg: 16px; --fs-xl: 20px; --fs-2xl: 26px; --fs-3xl: 32px;
+
+  /* --- Raios e sombras --- */
+  --r-sm: 4px; --r-md: 6px; --r-lg: 10px; --r-xl: 14px; --r-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, .14);
+  --shadow-xl: 0 24px 64px rgba(15, 23, 42, .2);
+
+  /* --- Layout desktop --- */
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 68px;
+  --header-h: 60px;
+  --content-max: 1600px;
+  --z-drawer: 60;
+  --z-modal: 70;
+  --z-toast: 90;
+}

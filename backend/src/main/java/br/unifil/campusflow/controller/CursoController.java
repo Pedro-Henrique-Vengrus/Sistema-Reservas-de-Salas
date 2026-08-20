@@ -1,7 +1,9 @@
 package br.unifil.campusflow.controller;
 
+import br.unifil.campusflow.domain.StatusRegistro;
 import br.unifil.campusflow.dto.CursoRequest;
 import br.unifil.campusflow.dto.CursoResponse;
+import br.unifil.campusflow.dto.ImpactoResponse;
 import br.unifil.campusflow.service.CursoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,8 +23,9 @@ public class CursoController {
     }
 
     @GetMapping
-    public List<CursoResponse> listar() {
-        return cursoService.listarAtivos().stream().map(CursoResponse::from).toList();
+    public List<CursoResponse> listar(@RequestParam(required = false) String termo,
+                                      @RequestParam(required = false) StatusRegistro status) {
+        return cursoService.listar(termo, status).stream().map(CursoResponse::from).toList();
     }
 
     @GetMapping("/{id}")
@@ -41,9 +44,27 @@ public class CursoController {
         return CursoResponse.from(cursoService.atualizar(id, req));
     }
 
+    /** Previa do impacto antes de inativar/excluir (alimenta o dialogo de confirmacao). */
+    @GetMapping("/{id}/impacto")
+    public ImpactoResponse impacto(@PathVariable Long id) {
+        return cursoService.impacto(id);
+    }
+
+    /** Exclusao logica; forcar=true cancela as reservas futuras e notifica os solicitantes. */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        cursoService.desativar(id);
+    public CursoResponse inativar(@PathVariable Long id,
+                                  @RequestParam(defaultValue = "false") boolean forcar) {
+        return CursoResponse.from(cursoService.inativar(id, forcar));
+    }
+
+    @PostMapping("/{id}/reativar")
+    public CursoResponse reativar(@PathVariable Long id) {
+        return CursoResponse.from(cursoService.reativar(id));
+    }
+
+    @DeleteMapping("/{id}/permanente")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        cursoService.excluirFisicamente(id);
         return ResponseEntity.noContent().build();
     }
 }

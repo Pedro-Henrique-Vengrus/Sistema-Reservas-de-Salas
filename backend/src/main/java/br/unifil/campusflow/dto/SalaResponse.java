@@ -1,19 +1,24 @@
 package br.unifil.campusflow.dto;
 
-import br.unifil.campusflow.domain.Curso;
 import br.unifil.campusflow.domain.Sala;
-import java.util.Set;
-import java.util.stream.Collectors;
+import br.unifil.campusflow.domain.StatusRegistro;
+import br.unifil.campusflow.domain.TipoAmbiente;
+
+import java.util.Comparator;
+import java.util.List;
 
 public record SalaResponse(
-    Long id, String nome, String tipo, Integer capacidade,
-    String andar, String situacao, Boolean ativo, Set<CursoResponse> cursos
+    Long id, String nome, String codigo, TipoAmbiente tipo, String tipoRotulo,
+    Integer capacidade, String andar, StatusRegistro status, List<CursoResponse> cursos
 ) {
     public static SalaResponse from(Sala s) {
-        Set<CursoResponse> cs = s.getCursos().stream()
+        List<CursoResponse> cs = s.getCursos().stream()
             .map(CursoResponse::from)
-            .collect(Collectors.toSet());
-        return new SalaResponse(s.getId(), s.getNome(), s.getTipo(), s.getCapacidade(),
-            s.getAndar(), s.getSituacao(), s.getAtivo(), cs);
+            .sorted(Comparator.comparing(CursoResponse::nome))
+            .toList();
+        TipoAmbiente tipo = s.getTipo();
+        return new SalaResponse(s.getId(), s.getNome(), s.getCodigo(), tipo,
+            tipo != null ? tipo.getRotulo() : null,
+            s.getCapacidade(), s.getAndar(), s.getStatus(), cs);
     }
 }

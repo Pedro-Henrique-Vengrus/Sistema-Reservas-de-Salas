@@ -35,13 +35,12 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(req.email(), req.senha()));
 
         Usuario u = usuarioRepository.findByEmail(req.email()).orElseThrow();
-        Long cursoId = u.getCurso() != null ? u.getCurso().getId() : null;
 
         String token = jwtService.generateToken(u.getEmail(), Map.of(
                 "role", u.getRole().name(),
                 "nome", u.getNome()
         ));
 
-        return ResponseEntity.ok(new LoginResponse(token, u.getNome(), u.getRole().name(), cursoId));
+        return ResponseEntity.ok(LoginResponse.from(token, u));
     }
 }

@@ -50,4 +50,9 @@ public class PropostaController {
     public PropostaResponse recusar(@PathVariable Long id) {
         return PropostaResponse.from(propostaService.responder(id, false));
     }
+
+    @PostMapping("/{id}/cancelar")
+    public PropostaResponse cancelar(@PathVariable Long id) {
+        return PropostaResponse.from(propostaService.cancelar(id));
+    }
 }

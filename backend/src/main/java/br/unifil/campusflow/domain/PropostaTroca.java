@@ -30,8 +30,9 @@ public class PropostaTroca {
     @Column(nullable = false, length = 500)
     private String justificativa;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "PENDENTE";
+    private StatusProposta status = StatusProposta.PENDENTE;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
@@ -52,8 +53,8 @@ public class PropostaTroca {
     public void setReservaOferecida(Reserva r) { this.reservaOferecida = r; }
     public String getJustificativa() { return justificativa; }
     public void setJustificativa(String j) { this.justificativa = j; }
-    public String getStatus() { return status; }
-    public void setStatus(String s) { this.status = s; }
+    public StatusProposta getStatus() { return status; }
+    public void setStatus(StatusProposta s) { this.status = s; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime d) { this.dataCriacao = d; }
     public LocalDateTime getDataModificacao() { return dataModificacao; }

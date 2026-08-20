@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { api } from '../api/client';
 
 const AuthContext = createContext(null);
@@ -12,7 +12,14 @@ export function AuthProvider({ children }) {
   async function login(email, senha) {
     const data = await api.post('/auth/login', { email, senha });
     localStorage.setItem('cf_token', data.token);
-    const u = { nome: data.nome, role: data.role, cursoId: data.cursoId };
+    const u = {
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      role: data.role,
+      administrativo: data.administrativo,
+      cursos: data.cursos || [],
+    };
     localStorage.setItem('cf_user', JSON.stringify(u));
     setUser(u);
     return u;
@@ -24,13 +31,17 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  const isAdmin = user && user.role === 'GESTOR';
+  const valor = useMemo(() => ({
+    user,
+    login,
+    logout,
+    // ADMIN e REITOR operam o painel; o Reitor tambem solicita reservas proprias
+    ehAdministrativo: !!user?.administrativo,
+    ehSolicitante: user?.role === 'PROFESSOR' || user?.role === 'REITOR',
+    semCurso: !!user && user.role !== 'ADMIN' && (user.cursos || []).length === 0,
+  }), [user]);
 
-  return (
-    <AuthContext.Provider value={{ user, isAdmin, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
