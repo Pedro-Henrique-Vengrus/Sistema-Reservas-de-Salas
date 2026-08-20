@@ -1,0 +1,14 @@
+package br.unifil.campusflow.domain;
+
+public enum TipoNotificacao {
+    RESERVA_APROVADA,
+    RESERVA_RECUSADA,
+    RESERVA_CANCELADA,
+    RESERVA_CRIADA,
+    TROCA_RECEBIDA,
+    TROCA_ACEITA,
+    TROCA_RECUSADA,
+    TROCA_CANCELADA,
+    AMBIENTE_INATIVADO,
+    CURSO_INATIVADO
+}

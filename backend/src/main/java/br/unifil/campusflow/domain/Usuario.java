@@ -2,6 +2,8 @@ package br.unifil.campusflow.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_usuario")
@@ -20,13 +22,22 @@ public class Usuario {
     @Column(nullable = false)
     private String senha;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_curso")
-    private Curso curso;
+    // Visibilidade setorizada: um usuario pode pertencer a varios cursos
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tb_usuario_curso",
+        joinColumns = @JoinColumn(name = "id_usuario"),
+        inverseJoinColumns = @JoinColumn(name = "id_curso")
+    )
+    private Set<Curso> cursos = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private StatusRegistro status = StatusRegistro.ATIVO;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
@@ -37,8 +48,13 @@ public class Usuario {
     @Column(name = "data_desativacao")
     private LocalDateTime dataDesativacao;
 
-    @Column(nullable = false)
-    private Boolean ativo = true;
+    public boolean estaAtivo() {
+        return status == StatusRegistro.ATIVO;
+    }
+
+    public boolean ehAdministrativo() {
+        return role != null && role.ehAdministrativo();
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -48,16 +64,16 @@ public class Usuario {
     public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
-    public Curso getCurso() { return curso; }
-    public void setCurso(Curso curso) { this.curso = curso; }
+    public Set<Curso> getCursos() { return cursos; }
+    public void setCursos(Set<Curso> cursos) { this.cursos = cursos; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+    public StatusRegistro getStatus() { return status; }
+    public void setStatus(StatusRegistro status) { this.status = status; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime d) { this.dataCriacao = d; }
     public LocalDateTime getDataModificacao() { return dataModificacao; }
     public void setDataModificacao(LocalDateTime d) { this.dataModificacao = d; }
     public LocalDateTime getDataDesativacao() { return dataDesativacao; }
     public void setDataDesativacao(LocalDateTime d) { this.dataDesativacao = d; }
-    public Boolean getAtivo() { return ativo; }
-    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 }

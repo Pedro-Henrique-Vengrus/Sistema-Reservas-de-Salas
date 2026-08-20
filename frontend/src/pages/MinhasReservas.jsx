@@ -1,163 +1,115 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import { useAuth } from '../auth/AuthContext';
-
-function pillStatus(status) {
-  const map = { PENDENTE: 'pill-pendente', CONFIRMADA: 'pill-aceita', RECUSADA: 'pill-recusada' };
-  const label = { PENDENTE: 'Pendente', CONFIRMADA: 'Confirmada', RECUSADA: 'Recusada' };
-  return <span className={`pill ${map[status] || ''}`}>{label[status] || status}</span>;
-}
+import DataTable from '../components/ui/DataTable';
+import { useToast } from '../components/ui/ToastProvider';
+import {
+  ConfirmDialog, EmptyState, Notice, PageHeader, Segmented, StatusBadge,
+} from '../components/ui/primitives';
+import { dataBr, diaDaSemana, hhmm, reservaPassada } from '../lib/format';
 
 export default function MinhasReservas() {
-  const { isAdmin } = useAuth();
-  const [minhas, setMinhas] = useState([]);
-  const [outros, setOutros] = useState([]);
-  const [toast, setToast] = useState('');
+  const toast = useToast();
+  const [reservas, setReservas] = useState([]);
+  const [aba, setAba] = useState('futuras');
   const [erro, setErro] = useState('');
-  const [modal, setModal] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [confirmar, setConfirmar] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
 
-  function showToast(m) { setToast(m); setTimeout(() => setToast(''), 3000); }
+  const carregar = useCallback(() => {
+    setCarregando(true);
+    api.get('/reservas/minhas?incluirHistorico=true')
+      .then(setReservas)
+      .catch((e) => setErro(e.message))
+      .finally(() => setCarregando(false));
+  }, []);
 
-  async function carregar() {
+  useEffect(() => { carregar(); }, [carregar]);
+
+  async function cancelar(reserva) {
+    setOcupado(true);
     try {
-      if (isAdmin) {
-        setMinhas(await api.get('/reservas/minhas'));
-        return;
-      }
-      const [m, o] = await Promise.all([
-        api.get('/reservas/minhas'),
-        api.get('/reservas/outros'),
-      ]);
-      setMinhas(m);
-      setOutros(o);
-    } catch (e) { setErro(e.message); }
-  }
-
-  useEffect(() => { carregar(); }, []);
-
-  async function cancelar(id) {
-    if (!confirm('Cancelar esta reserva?')) return;
-    try {
-      await api.del(`/reservas/${id}`);
-      showToast('Reserva cancelada');
+      await api.del(`/reservas/${reserva.id}`);
+      toast.sucesso('Reserva cancelada.');
+      setConfirmar(null);
       carregar();
-    } catch (e) { setErro(e.message); }
+    } catch (e) {
+      toast.erro(e.message);
+    } finally {
+      setOcupado(false);
+    }
   }
 
-  function passada(r) {
-    const dt = new Date(`${r.data}T${r.horaFim}`);
-    return dt < new Date();
-  }
+  const futuras = reservas.filter((r) => !reservaPassada(r) && r.status !== 'CANCELADA' && r.status !== 'RECUSADA');
+  const historico = reservas.filter((r) => reservaPassada(r) || r.status === 'CANCELADA' || r.status === 'RECUSADA');
+  const lista = aba === 'futuras' ? futuras : historico;
+
+  const colunas = [
+    { chave: 'data', titulo: 'Data', largura: 150,
+      render: (r) => (
+        <span className="nowrap">
+          {dataBr(r.data)} <span className="text-muted text-sm">{diaDaSemana(r.data, true)}</span>
+        </span>
+      ) },
+    { chave: 'horaInicio', titulo: 'Horário', largura: 130,
+      render: (r) => <span className="nowrap">{hhmm(r.horaInicio)}–{hhmm(r.horaFim)}</span> },
+    { chave: 'turno', titulo: 'Turno', render: (r) => <StatusBadge valor={r.turno} /> },
+    { chave: 'salaNome', titulo: 'Ambiente',
+      render: (r) => (
+        <div>
+          <strong>{r.salaNome}</strong>
+          <div className="text-sm text-muted">{r.salaAndar}</div>
+        </div>
+      ) },
+    { chave: 'tipoReserva', titulo: 'Modo', render: (r) => <StatusBadge valor={r.tipoReserva} /> },
+    { chave: 'status', titulo: 'Status', render: (r) => <StatusBadge valor={r.status} /> },
+    { chave: 'acoes', titulo: '', ordenavel: false, alinhar: 'right',
+      render: (r) => (!reservaPassada(r) && (r.status === 'APROVADA' || r.status === 'PENDENTE_APROVACAO') ? (
+        <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(r)}>Cancelar</button>
+      ) : null) },
+  ];
 
   return (
-    <div className="page">
-      {toast && <div className="toast">{toast}</div>}
-      <h1>Minhas Salas Reservadas</h1>
-      {erro && <p className="error">{erro}</p>}
+    <>
+      <PageHeader titulo="Minhas reservas"
+        descricao="Suas solicitações confirmadas, pendentes de moderação e o histórico do período."
+        acoes={<Link className="btn" to="/agenda">+ Nova reserva</Link>} />
 
-      <div className="section-title">Minhas Reservas</div>
-      {minhas.map((r) => (
-        <div className="list-item" key={r.id} style={passada(r) ? { opacity: 0.55 } : {}}>
-          <div className="list-item-left">
-            <span className="ic">🖥</span>
-            <div>
-              <strong>{r.salaNome}</strong>
-              <p className="muted">
-                {r.data} • {r.horaInicio.slice(0,5)} {' '}
-                {passada(r) ? <span className="pill pill-recusada" style={{ marginLeft: 6 }}>Passada</span> : pillStatus(r.status)}
-              </p>
-            </div>
-          </div>
-          {!passada(r) && r.status !== 'RECUSADA' && <button className="btn btn-danger btn-sm" onClick={() => cancelar(r.id)}>Cancelar</button>}
-        </div>
-      ))}
-      {minhas.length === 0 && <p className="muted">Você ainda não tem reservas.</p>}
+      {erro && <div className="mb-4"><Notice tom="danger">{erro}</Notice></div>}
 
-      {!isAdmin && (
-        <>
-          <div className="section-title">Reservas de Outros (Propor Troca)</div>
-          {outros.map((r) => (
-            <div className="list-item" key={r.id} style={{ background: '#f0f7ff' }}>
-              <div className="list-item-left">
-                <span className="ic">🖥</span>
-                <div>
-                  <strong>{r.salaNome}</strong>
-                  <p className="muted">{r.solicitanteNome} · {r.data} • {r.horaInicio.slice(0,5)}</p>
-                </div>
-              </div>
-              <button className="btn btn-blue btn-sm" onClick={() => setModal(r)}>⇄ Propor Troca</button>
-            </div>
-          ))}
-          {outros.length === 0 && <p className="muted">Nenhuma reserva de outros usuários.</p>}
-        </>
-      )}
+      <div className="mb-4">
+        <Segmented valor={aba} onChange={setAba} opcoes={[
+          { valor: 'futuras', rotulo: `Ativas (${futuras.length})` },
+          { valor: 'historico', rotulo: `Histórico (${historico.length})` },
+        ]} />
+      </div>
 
-      {modal && (
-        <ModalTroca reserva={modal} minhasReservas={minhas} onClose={() => setModal(null)}
-          onSucesso={() => { setModal(null); showToast('✓ Proposta enviada!'); carregar(); }} />
-      )}
-    </div>
-  );
-}
-
-function ModalTroca({ reserva, minhasReservas, onClose, onSucesso }) {
-  const [justificativa, setJustificativa] = useState('');
-  const [reservaOferecidaId, setReservaOferecidaId] = useState('');
-  const [erro, setErro] = useState('');
-  const [enviando, setEnviando] = useState(false);
-
-  const elegiveis = minhasReservas.filter((r) => {
-    if (r.status !== 'CONFIRMADA') return false;
-    const fim = new Date(`${r.data}T${r.horaFim}`);
-    return fim >= new Date();
-  });
-
-  async function enviar() {
-    if (!reservaOferecidaId) { setErro('Selecione qual das suas salas você quer oferecer.'); return; }
-    if (!justificativa.trim()) { setErro('A justificativa é obrigatória.'); return; }
-    setEnviando(true); setErro('');
-    try {
-      await api.post('/propostas', { reservaOrigemId: reserva.id, reservaOferecidaId: Number(reservaOferecidaId), justificativa });
-      onSucesso();
-    } catch (e) { setErro(e.message); setEnviando(false); }
-  }
-
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>⇄ Propor Troca de Sala</h3>
-        <div className="info-box">
-          <strong>{reserva.salaNome}</strong><br />
-          {reserva.data} às {reserva.horaInicio.slice(0,5)}<br />
-          Reservado por: <strong>{reserva.solicitanteNome}</strong>
-        </div>
-
-        {elegiveis.length === 0 ? (
-          <p className="error">Você precisa de uma reserva confirmada para propor troca.</p>
-        ) : (
-          <>
-            <label>Sua sala oferecida em troca</label>
-            <select value={reservaOferecidaId} onChange={(e) => setReservaOferecidaId(e.target.value)}>
-              <option value="">Selecione...</option>
-              {elegiveis.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.salaNome} · {r.data} às {r.horaInicio.slice(0, 5)}
-                </option>
-              ))}
-            </select>
-
-            <label>Justificativa (obrigatória)</label>
-            <textarea value={justificativa} onChange={(e) => setJustificativa(e.target.value)}
-              placeholder="Explique o motivo da troca..." />
-          </>
+      {carregando
+        ? <div className="panel"><div className="skeleton" style={{ height: 180 }} /></div>
+        : (
+          <DataTable colunas={colunas} dados={lista}
+            buscaPlaceholder="Buscar por ambiente, status…"
+            ordemInicial={{ chave: 'data', dir: aba === 'futuras' ? 'asc' : 'desc' }}
+            classeLinha={(r) => (reservaPassada(r) ? 'dim' : '')}
+            vazio={<EmptyState icone="🔖"
+              titulo={aba === 'futuras' ? 'Nenhuma reserva ativa' : 'Histórico vazio'}
+              descricao={aba === 'futuras'
+                ? 'Abra a agenda para reservar um ambiente do seu curso.'
+                : 'Reservas passadas, canceladas e recusadas aparecem aqui.'}
+              acao={aba === 'futuras' && <Link className="btn" to="/agenda">Ir para a agenda</Link>} />} />
         )}
 
-        {erro && <p className="error">{erro}</p>}
-        <div className="modal-actions">
-          <button className="btn btn-blue" onClick={enviar} disabled={enviando || elegiveis.length === 0}>Enviar Proposta</button>
-          <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
-        </div>
-      </div>
-    </div>
+      {confirmar && (
+        <ConfirmDialog
+          titulo="Cancelar reserva"
+          mensagem={`Cancelar a reserva de ${confirmar.salaNome} em ${dataBr(confirmar.data)}, das ${hhmm(confirmar.horaInicio)} às ${hhmm(confirmar.horaFim)}? Propostas de troca pendentes envolvendo esta reserva também serão canceladas.`}
+          confirmarTexto="Cancelar reserva"
+          ocupado={ocupado}
+          onConfirm={() => cancelar(confirmar)}
+          onClose={() => setConfirmar(null)}
+        />
+      )}
+    </>
   );
 }

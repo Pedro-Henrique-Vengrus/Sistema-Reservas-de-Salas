@@ -17,22 +17,33 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ApiError> handleNotFound(RecursoNaoEncontradoException ex) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), null, null);
     }
 
     @ExceptionHandler(ConflitoException.class)
     public ResponseEntity<ApiError> handleConflito(ConflitoException ex) {
-        return build(HttpStatus.CONFLICT, ex.getMessage(), null);
+        return build(HttpStatus.CONFLICT, ex.getMessage(), null, null);
+    }
+
+    /** Acao com efeito colateral: devolve o impacto para o cliente confirmar e repetir com forcar=true. */
+    @ExceptionHandler(ConfirmacaoNecessariaException.class)
+    public ResponseEntity<ApiError> handleConfirmacao(ConfirmacaoNecessariaException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), null, ex.getDetalhes());
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ApiError> handleAcessoNegado(AcessoNegadoException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), null, null);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
-        return build(HttpStatus.UNAUTHORIZED, "Email ou senha invalidos.", null);
+        return build(HttpStatus.UNAUTHORIZED, "Email ou senha invalidos.", null, null);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
-        return build(HttpStatus.FORBIDDEN, "Acesso negado.", null);
+        return build(HttpStatus.FORBIDDEN, "Acesso negado.", null, null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -40,17 +51,19 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(fe ->
             errors.put(fe.getField(), fe.getDefaultMessage()));
-        return build(HttpStatus.UNPROCESSABLE_ENTITY, "Erro de validacao.", errors);
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, "Erro de validacao.", errors, null);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex) {
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), null);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), null, null);
     }
 
-    private ResponseEntity<ApiError> build(HttpStatus status, String msg, Map<String, String> fieldErrors) {
+    private ResponseEntity<ApiError> build(HttpStatus status, String msg,
+                                           Map<String, String> fieldErrors,
+                                           Map<String, Object> detalhes) {
         ApiError err = new ApiError(LocalDateTime.now(), status.value(),
-            status.getReasonPhrase(), msg, fieldErrors);
+            status.getReasonPhrase(), msg, fieldErrors, detalhes);
         return ResponseEntity.status(status).body(err);
     }
 }

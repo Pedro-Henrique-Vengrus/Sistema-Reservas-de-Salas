@@ -30,11 +30,21 @@ public class Reserva {
     @Column(name = "hora_fim", nullable = false)
     private LocalTime horaFim;
 
-    @Column(name = "tipo_reserva", nullable = false, length = 50)
-    private String tipoReserva = "GRADE_BIMESTRAL";
+    // Derivado de horaInicio por Turno.de(...); persistido para permitir busca por turno
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Turno turno;
 
-    @Column(nullable = false, length = 50)
-    private String status = "PENDENTE";
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_reserva", nullable = false, length = 30)
+    private TipoReserva tipoReserva = TipoReserva.GRADE_BIMESTRAL;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private StatusReserva status = StatusReserva.PENDENTE_APROVACAO;
+
+    @Column(length = 300)
+    private String observacao;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
@@ -45,6 +55,17 @@ public class Reserva {
     @Column(name = "data_exclusao")
     private LocalDateTime dataExclusao;
 
+    /** Mantem o turno coerente com o horario de inicio. */
+    public void definirHorario(LocalTime inicio, LocalTime fim) {
+        this.horaInicio = inicio;
+        this.horaFim = fim;
+        this.turno = Turno.de(inicio);
+    }
+
+    public boolean ehFutura(LocalDate hoje) {
+        return !dataReserva.isBefore(hoje);
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Usuario getSolicitante() { return solicitante; }
@@ -54,13 +75,15 @@ public class Reserva {
     public LocalDate getDataReserva() { return dataReserva; }
     public void setDataReserva(LocalDate d) { this.dataReserva = d; }
     public LocalTime getHoraInicio() { return horaInicio; }
-    public void setHoraInicio(LocalTime h) { this.horaInicio = h; }
     public LocalTime getHoraFim() { return horaFim; }
-    public void setHoraFim(LocalTime h) { this.horaFim = h; }
-    public String getTipoReserva() { return tipoReserva; }
-    public void setTipoReserva(String t) { this.tipoReserva = t; }
-    public String getStatus() { return status; }
-    public void setStatus(String s) { this.status = s; }
+    public Turno getTurno() { return turno; }
+    public void setTurno(Turno turno) { this.turno = turno; }
+    public TipoReserva getTipoReserva() { return tipoReserva; }
+    public void setTipoReserva(TipoReserva t) { this.tipoReserva = t; }
+    public StatusReserva getStatus() { return status; }
+    public void setStatus(StatusReserva s) { this.status = s; }
+    public String getObservacao() { return observacao; }
+    public void setObservacao(String observacao) { this.observacao = observacao; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime d) { this.dataCriacao = d; }
     public LocalDateTime getDataModificacao() { return dataModificacao; }

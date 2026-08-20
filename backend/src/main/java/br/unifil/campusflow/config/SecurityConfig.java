@@ -24,6 +24,9 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    /** ADMIN e REITOR operam o painel administrativo (o Reitor acumula os dois papeis). */
+    private static final String[] PERFIS_ADMINISTRATIVOS = { "ADMIN", "REITOR" };
+
     private final JwtAuthFilter jwtAuthFilter;
 
     @Value("${app.cors.allowed-origins}")
@@ -42,10 +45,27 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                // Leitura de salas/cursos: qualquer autenticado
-                .requestMatchers(HttpMethod.GET, "/api/salas", "/api/salas/**", "/api/cursos", "/api/cursos/**").authenticated()
-                // Escrita (CRUD admin): apenas GESTOR
-                .requestMatchers("/api/salas", "/api/salas/**", "/api/cursos", "/api/cursos/**").hasRole("GESTOR")
+
+                // O proprio usuario sempre pode ler seu perfil e suas notificacoes
+                .requestMatchers("/api/usuarios/me", "/api/notificacoes/**").authenticated()
+
+                // Leitura de catalogo e do estado da grade: qualquer autenticado
+                // (a visibilidade setorizada e aplicada no servico, nao aqui)
+                .requestMatchers(HttpMethod.GET, "/api/salas", "/api/salas/**",
+                                                 "/api/cursos", "/api/cursos/**",
+                                                 "/api/periodo-grade", "/api/periodo-grade/**").authenticated()
+
+                // Painel administrativo
+                .requestMatchers("/api/usuarios", "/api/usuarios/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
+                .requestMatchers("/api/relatorios/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
+                .requestMatchers(HttpMethod.PUT, "/api/periodo-grade").hasAnyRole(PERFIS_ADMINISTRATIVOS)
+                .requestMatchers(HttpMethod.GET, "/api/reservas/moderacao", "/api/reservas/moderacao/**")
+                    .hasAnyRole(PERFIS_ADMINISTRATIVOS)
+
+                // Escrita de catalogo (CRUD de ambientes e cursos)
+                .requestMatchers("/api/salas", "/api/salas/**",
+                                 "/api/cursos", "/api/cursos/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -59,6 +79,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Content-Disposition"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
