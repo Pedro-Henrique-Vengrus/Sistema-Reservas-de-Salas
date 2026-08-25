@@ -4,6 +4,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import {
   EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
+import CampoData from '../../components/ui/CampoData';
 import {
   dataBr, diaDaSemana, hhmm, hojeIso, somaDias, STATUS_RESERVA, TIPOS_RESERVA, TURNOS,
 } from '../../lib/format';
@@ -91,12 +92,12 @@ export default function Relatorios() {
 
       <div className="filterbar">
         <Field label="De">
-          <input className="input" type="date" value={filtros.inicio}
-            onChange={(e) => mudarFiltro('inicio', e.target.value)} />
+          <CampoData value={filtros.inicio} max={filtros.fim || undefined}
+            onChange={(iso) => mudarFiltro('inicio', iso)} />
         </Field>
         <Field label="Até">
-          <input className="input" type="date" value={filtros.fim}
-            onChange={(e) => mudarFiltro('fim', e.target.value)} />
+          <CampoData value={filtros.fim} min={filtros.inicio || undefined}
+            onChange={(iso) => mudarFiltro('fim', iso)} />
         </Field>
         <Field label="Curso">
           <select className="select" value={filtros.cursoId} onChange={(e) => mudarFiltro('cursoId', e.target.value)}>

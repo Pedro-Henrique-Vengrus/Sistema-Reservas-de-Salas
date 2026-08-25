@@ -3,6 +3,7 @@ import { api, qs } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/ui/ToastProvider';
 import { Drawer, Field, Notice, PageHeader, StatusBadge, EmptyState } from '../components/ui/primitives';
+import CampoData from '../components/ui/CampoData';
 import {
   dataBr, diaDaSemana, hhmm, hojeIso, inicioDaSemana, reservaPassada, somaDias, TIPOS_RESERVA,
 } from '../lib/format';
@@ -133,7 +134,7 @@ export default function Agenda() {
             </div>
             <div className="mt-4">
               <Field label="Ir para a data">
-                <input className="input" type="date" value={dia} onChange={(e) => setDia(e.target.value)} />
+                <CampoData value={dia} onChange={(iso) => iso && setDia(iso)} />
               </Field>
             </div>
           </section>

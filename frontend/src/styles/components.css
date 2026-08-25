@@ -266,6 +266,24 @@ table.data td.actions .btn + .btn { margin-left: var(--sp-2); }
 .search .input { padding-left: var(--sp-8); }
 .search .ico { position: absolute; left: var(--sp-3); top: 50%; transform: translateY(-50%); color: var(--ink-400); pointer-events: none; }
 
+/* Campo de data: texto dd/mm/aaaa nosso + botao que abre o calendario nativo */
+.campo-data { position: relative; }
+.campo-data .input { padding-right: var(--sp-8); }
+.campo-data-btn {
+  position: absolute; right: var(--sp-1); top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border: 0; border-radius: var(--r-sm); background: transparent;
+  font-size: 14px; line-height: 1; color: var(--ink-500); cursor: pointer;
+}
+.campo-data-btn:hover { background: var(--ink-100); color: var(--ink-900); }
+.campo-data-btn:disabled { opacity: .4; cursor: default; background: transparent; }
+/* Precisa continuar renderizado para o showPicker() funcionar — dai opacidade, nao display */
+.campo-data-nativo {
+  position: absolute; right: var(--sp-4); bottom: 0;
+  width: 1px; height: 1px; padding: 0; border: 0;
+  opacity: 0; pointer-events: none;
+}
+
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
 .form-grid .span-2 { grid-column: span 2; }
 
