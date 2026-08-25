@@ -17,24 +17,24 @@ export default function NotificacoesPopover({ naoLidas, aoAtualizar }) {
 
   useEffect(() => {
     if (!aberto) return undefined;
-    api.get('/notificacoes').then(setItens).catch(() => setItens([]));
+
+    // Abrir o painel ja da os avisos por vistos: o contador zera na hora.
+    // A lista mantem o destaque de "nao lida" desta abertura, para o usuario
+    // identificar o que chegou desde a ultima vez.
+    api.get('/notificacoes')
+      .then(async (lista) => {
+        setItens(lista);
+        if (lista.some((n) => !n.lida)) {
+          await api.post('/notificacoes/marcar-todas-lidas');
+          aoAtualizar?.();
+        }
+      })
+      .catch(() => setItens([]));
+
     const fora = (e) => { if (ref.current && !ref.current.contains(e.target)) setAberto(false); };
     document.addEventListener('mousedown', fora);
     return () => document.removeEventListener('mousedown', fora);
-  }, [aberto]);
-
-  async function marcarUma(n) {
-    if (n.lida) return;
-    await api.post(`/notificacoes/${n.id}/lida`);
-    setItens((l) => l.map((x) => (x.id === n.id ? { ...x, lida: true } : x)));
-    aoAtualizar?.();
-  }
-
-  async function marcarTodas() {
-    await api.post('/notificacoes/marcar-todas-lidas');
-    setItens((l) => l.map((x) => ({ ...x, lida: true })));
-    aoAtualizar?.();
-  }
+  }, [aberto, aoAtualizar]);
 
   return (
     <div className="popover-anchor" ref={ref}>
@@ -47,20 +47,20 @@ export default function NotificacoesPopover({ naoLidas, aoAtualizar }) {
         <div className="popover">
           <div className="popover-head">
             <strong className="text-md">Notificações</strong>
-            {itens.some((n) => !n.lida) && (
-              <button className="btn btn-ghost btn-sm" onClick={marcarTodas}>Marcar todas como lidas</button>
-            )}
+            <span className="text-sm text-muted">
+              {itens.length > 0 ? `${itens.length} aviso(s)` : ''}
+            </span>
           </div>
           <div className="notif-list">
             {itens.map((n) => (
-              <button key={n.id} className={`notif ${n.lida ? '' : 'unread'}`} onClick={() => marcarUma(n)}>
+              <div key={n.id} className={`notif ${n.lida ? '' : 'unread'}`}>
                 <span className="ico" aria-hidden>{ICONES[n.tipo] || '•'}</span>
                 <span className="grow">
                   <strong className="text-md">{n.titulo}</strong>
                   <span className="text-sm text-muted" style={{ display: 'block' }}>{n.mensagem}</span>
                   <span className="ts">{dataHoraBr(n.dataCriacao)}</span>
                 </span>
-              </button>
+              </div>
             ))}
             {itens.length === 0 && (
               <EmptyState icone="🔔" titulo="Tudo em dia" descricao="Você não tem avisos no momento." />

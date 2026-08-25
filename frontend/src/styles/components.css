@@ -393,10 +393,10 @@ table.agenda td.slot { padding: 0; height: 42px; }
 .notif-list { display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; }
 .notif {
   display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4);
-  border-bottom: 1px solid var(--ink-100); font-size: var(--fs-md); cursor: pointer; text-align: left; width: 100%;
+  border-bottom: 1px solid var(--ink-100); font-size: var(--fs-md); text-align: left; width: 100%;
 }
-.notif:hover { background: var(--ink-050); }
-.notif.unread { background: var(--brand-050); }
+/* Destaque das que chegaram desde a ultima abertura do painel */
+.notif.unread { background: var(--brand-050); border-left: 3px solid var(--brand-500); }
 .notif .ico { width: 28px; height: 28px; flex: 0 0 28px; border-radius: var(--r-full); background: var(--brand-100); color: var(--brand-700); display: grid; place-items: center; }
 .notif .ts { font-size: var(--fs-xs); color: var(--ink-400); margin-top: 2px; }
 

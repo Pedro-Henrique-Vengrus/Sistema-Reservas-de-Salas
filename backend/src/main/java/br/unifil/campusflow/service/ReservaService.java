@@ -10,6 +10,7 @@ import br.unifil.campusflow.repository.ReservaRepository;
 import br.unifil.campusflow.repository.SalaRepository;
 import br.unifil.campusflow.repository.UsuarioRepository;
 import br.unifil.campusflow.security.UsuarioLogado;
+import br.unifil.campusflow.util.FormatoBr;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -310,7 +311,8 @@ public class ReservaService {
         return reservaRepository.buscarComFiltros(inicio, fim, cursoId, salaId, usuarioId, status, tipo, turno, pageable);
     }
 
+    /** Texto pt-BR da data e horario da reserva, usado nas notificacoes. */
     static String descrever(Reserva r) {
-        return r.getDataReserva() + " das " + r.getHoraInicio() + " as " + r.getHoraFim();
+        return FormatoBr.periodo(r.getDataReserva(), r.getHoraInicio(), r.getHoraFim());
     }
 }
