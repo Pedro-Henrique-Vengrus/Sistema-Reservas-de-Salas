@@ -42,6 +42,15 @@ public class UsuarioService {
         return usuarioLogado.get();
     }
 
+    /** Adesao (ou saida) do proprio usuario aos avisos por e-mail. Nao exige perfil administrativo. */
+    @Transactional
+    public Usuario definirReceberEmails(boolean receber) {
+        Usuario u = usuarioLogado.get();
+        u.setReceberEmails(receber);
+        u.setDataModificacao(LocalDateTime.now());
+        return usuarioRepository.save(u);
+    }
+
     @Transactional(readOnly = true)
     public List<Usuario> listar(String termo, Role role, StatusRegistro status, Long cursoId) {
         usuarioLogado.exigirAdministrativo();

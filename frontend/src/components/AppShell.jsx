@@ -4,6 +4,8 @@ import { useAuth } from '../auth/AuthContext';
 import { api } from '../api/client';
 import { iniciais } from '../lib/format';
 import NotificacoesPopover from './NotificacoesPopover';
+import Logo from './ui/Logo';
+import Preferencias from './Preferencias';
 
 const ROTULOS = {
   '': 'Painel', agenda: 'Agenda', ambientes: 'Ambientes', 'minhas-reservas': 'Minhas reservas',
@@ -22,6 +24,7 @@ export default function AppShell() {
 
   const [colapsada, setColapsada] = useState(() => localStorage.getItem('cf_sidebar') === 'collapsed');
   const [contadores, setContadores] = useState({ trocas: 0, moderacao: 0, avisos: 0 });
+  const [preferencias, setPreferencias] = useState(false);
 
   const carregarContadores = useCallback(async () => {
     const proximo = { trocas: 0, moderacao: 0, avisos: 0 };
@@ -32,7 +35,9 @@ export default function AppShell() {
       pedidos.push(api.get('/propostas/pendentes/count').then((r) => { proximo.trocas = r.count; }).catch(() => {}));
     }
     if (ehAdministrativo) {
-      pedidos.push(api.get('/reservas/moderacao/count').then((r) => { proximo.moderacao = r.count; }).catch(() => {}));
+      // A fila de moderacao soma solicitacoes de ultima hora e trocas fora do dia/turno
+      pedidos.push(api.get('/reservas/moderacao/count').then((r) => { proximo.moderacao += r.count; }).catch(() => {}));
+      pedidos.push(api.get('/propostas/moderacao/count').then((r) => { proximo.moderacao += r.count; }).catch(() => {}));
     }
     await Promise.all(pedidos);
     setContadores(proximo);
@@ -63,7 +68,7 @@ export default function AppShell() {
     <div className="shell">
       <nav className={`sidebar ${colapsada ? 'collapsed' : ''}`}>
         <div className="sidebar-brand">
-          <span className="mark" aria-hidden>🏫</span>
+          <span className="mark"><Logo tamanho={26} /></span>
           {!colapsada && <span className="name">CampusFlow</span>}
         </div>
 
@@ -115,6 +120,8 @@ export default function AppShell() {
               <button className="btn btn-sm" onClick={() => navigate('/agenda')}>+ Nova reserva</button>
             )}
             <NotificacoesPopover naoLidas={contadores.avisos} aoAtualizar={carregarContadores} />
+            <button className="icon-btn" onClick={() => setPreferencias(true)}
+              title="Preferências" aria-label="Preferências">⚙</button>
             <div className="user-chip">
               <span className="avatar" aria-hidden>{iniciais(user?.nome)}</span>
               <span className="meta">
@@ -129,6 +136,8 @@ export default function AppShell() {
         <main className="content">
           <Outlet context={{ recarregarContadores: carregarContadores }} />
         </main>
+
+        {preferencias && <Preferencias onFechar={() => setPreferencias(false)} />}
       </div>
     </div>
   );

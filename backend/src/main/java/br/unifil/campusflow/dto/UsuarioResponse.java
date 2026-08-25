@@ -13,6 +13,7 @@ public record UsuarioResponse(
     String email,
     Role role,
     StatusRegistro status,
+    boolean receberEmails,
     List<CursoResponse> cursos
 ) {
     public static UsuarioResponse from(Usuario u) {
@@ -20,6 +21,7 @@ public record UsuarioResponse(
             .map(CursoResponse::from)
             .sorted(Comparator.comparing(CursoResponse::nome))
             .toList();
-        return new UsuarioResponse(u.getId(), u.getNome(), u.getEmail(), u.getRole(), u.getStatus(), cursos);
+        return new UsuarioResponse(u.getId(), u.getNome(), u.getEmail(), u.getRole(), u.getStatus(),
+            u.querReceberEmails(), cursos);
     }
 }

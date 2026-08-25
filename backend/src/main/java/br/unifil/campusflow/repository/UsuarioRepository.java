@@ -49,4 +49,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query("SELECT COUNT(u) FROM Usuario u WHERE u.status = br.unifil.campusflow.domain.StatusRegistro.ATIVO")
     long countAtivos();
+
+    /** Destinatarios dos avisos que exigem decisao administrativa. */
+    @Query("SELECT u FROM Usuario u WHERE u.role = br.unifil.campusflow.domain.Role.ADMIN "
+         + "AND u.status = br.unifil.campusflow.domain.StatusRegistro.ATIVO")
+    List<Usuario> findAdministradoresAtivos();
 }

@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/ui/ToastProvider';
 import { Drawer, Field, Notice, PageHeader, StatusBadge, EmptyState } from '../components/ui/primitives';
 import {
-  dataBr, diaDaSemana, hhmm, hojeIso, inicioDaSemana, somaDias, TIPOS_RESERVA,
+  dataBr, diaDaSemana, hhmm, hojeIso, inicioDaSemana, reservaPassada, somaDias, TIPOS_RESERVA,
 } from '../lib/format';
 
 const HORAS = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
@@ -18,7 +18,7 @@ const minutos = (hhmmss) => {
 /**
  * Agenda desktop: filtros a esquerda e matriz ambientes x horarios a direita.
  * Celula livre abre o formulario de reserva; celula ocupada abre o detalhe,
- * com proposta de troca quando o pre-requisito (mesmo dia e turno) e atendido.
+ * com proposta de troca — direta no mesmo dia/turno, ou via gestor fora disso.
  */
 export default function Agenda() {
   const { user, semCurso } = useAuth();
@@ -362,12 +362,16 @@ function DrawerDetalhe({ reserva, onFechar, onTrocaEnviada, onCancelada }) {
 
   useEffect(() => {
     if (minha || reserva.status !== 'APROVADA') { setElegiveis([]); return; }
-    // Pre-requisito da troca: reserva minha, aprovada, no mesmo dia e mesmo turno
+    // Qualquer reserva minha aprovada e futura serve. Dia e turno nao restringem mais
+    // a troca — apenas definem se ela se resolve entre professores ou passa pelo gestor.
     api.get('/reservas/minhas')
-      .then((lista) => setElegiveis(lista.filter((r) => r.status === 'APROVADA'
-        && r.data === reserva.data && r.turno === reserva.turno)))
+      .then((lista) => setElegiveis(lista.filter((r) => r.status === 'APROVADA' && !reservaPassada(r))))
       .catch((e) => { setErro(e.message); setElegiveis([]); });
   }, [reserva, minha]);
+
+  const oferecida = elegiveis?.find((r) => String(r.id) === String(oferecidaId));
+  const passaPeloGestor = !!oferecida
+    && (oferecida.data !== reserva.data || oferecida.turno !== reserva.turno);
 
   async function propor() {
     setErro('');
@@ -429,23 +433,31 @@ function DrawerDetalhe({ reserva, onFechar, onTrocaEnviada, onCancelada }) {
 
       {!minha && reserva.status === 'APROVADA' && elegiveis !== null && elegiveis.length === 0 && (
         <Notice tom="info">
-          Para propor uma troca você precisa de uma reserva aprovada <strong>no mesmo dia
-          e no mesmo turno</strong> ({reserva.turno.toLowerCase()}) desta reserva.
+          Para propor uma troca você precisa ter ao menos uma reserva aprovada e futura para oferecer.
         </Notice>
       )}
 
       {podeTrocar && (
         <>
-          <Field label="Sua reserva oferecida em troca">
+          <Field label="Sua reserva oferecida em troca"
+            hint="Mesmo dia e turno resolve direto com o professor; fora disso passa pelo gestor.">
             <select className="select" value={oferecidaId} onChange={(e) => setOferecidaId(e.target.value)}>
               <option value="">Selecione…</option>
               {elegiveis.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {r.salaNome} · {hhmm(r.horaInicio)}–{hhmm(r.horaFim)}
+                  {r.salaNome} · {dataBr(r.data)} · {hhmm(r.horaInicio)}–{hhmm(r.horaFim)}
+                  {r.data === reserva.data && r.turno === reserva.turno ? '' : '  (passa pelo gestor)'}
                 </option>
               ))}
             </select>
           </Field>
+
+          {passaPeloGestor && (
+            <Notice tom="warn">
+              Esta troca é <strong>fora do mesmo dia/turno</strong>. Depois que {reserva.solicitanteNome}
+              {' '}aceitar, ela ainda depende do aval do gestor para se efetivar.
+            </Notice>
+          )}
           <Field label="Justificativa" hint="Obrigatória — será enviada ao professor responsável.">
             <textarea className="textarea" maxLength={500} value={justificativa}
               placeholder="Explique por que precisa deste ambiente…"

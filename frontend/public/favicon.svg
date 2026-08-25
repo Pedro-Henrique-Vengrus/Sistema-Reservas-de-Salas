@@ -1,0 +1,17 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Marca do CampusFlow. Mantenha em sincronia com src/components/ui/Logo.jsx -->
+  <rect width="64" height="64" rx="12" fill="#ffffff"/>
+  <path d="M4 49 C 15 48 19 35 29 28 C 37 22 43 16 48 10" stroke="#6cb794" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M0 0 L-12 -5.5 L-12 5.5 Z" transform="translate(52 6) rotate(-50)" fill="#6cb794"/>
+  <path d="M10 22 L22 15 L28 19 V53 H10 Z" fill="#114633"/>
+  <path d="M22 15 L28 19 V28.5 L22 24.5 Z" fill="#6cb794"/>
+  <rect x="14" y="27" width="6" height="7.5" rx="1" fill="#ffffff"/>
+  <rect x="14" y="39" width="6" height="7.5" rx="1" fill="#ffffff"/>
+  <path d="M32 31 L44 25 L56 31 V53 H32 Z" fill="#ffffff"/>
+  <path d="M32 31 L44 25 L56 31 V53 H32 Z" stroke="#165a41" stroke-width="2.8" stroke-linejoin="round"/>
+  <rect x="36.5" y="35.5" width="6" height="7" rx="1" fill="#1c7150"/>
+  <rect x="45.5" y="35.5" width="6" height="7" rx="1" fill="#1c7150"/>
+  <rect x="36.5" y="45" width="6" height="7" rx="1" fill="#1c7150"/>
+  <rect x="45.5" y="45" width="6" height="7" rx="1" fill="#1c7150"/>
+  <rect x="6" y="53" width="52" height="4.5" rx="1.4" fill="#0d3527"/>
+</svg>

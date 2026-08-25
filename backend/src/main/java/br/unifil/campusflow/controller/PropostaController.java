@@ -41,6 +41,8 @@ public class PropostaController {
         return PropostaResponse.from(propostaService.criar(req));
     }
 
+    // ---------- Resposta do professor dono da reserva ----------
+
     @PostMapping("/{id}/aceitar")
     public PropostaResponse aceitar(@PathVariable Long id) {
         return PropostaResponse.from(propostaService.responder(id, true));
@@ -54,5 +56,29 @@ public class PropostaController {
     @PostMapping("/{id}/cancelar")
     public PropostaResponse cancelar(@PathVariable Long id) {
         return PropostaResponse.from(propostaService.cancelar(id));
+    }
+
+    // ---------- Aval do gestor (trocas fora do mesmo dia/turno) ----------
+
+    @GetMapping("/moderacao")
+    public List<PropostaResponse> filaDoGestor() {
+        return propostaService.filaDoGestor().stream().map(PropostaResponse::from).toList();
+    }
+
+    @GetMapping("/moderacao/count")
+    public Map<String, Long> filaDoGestorCount() {
+        return Map.of("count", propostaService.countFilaDoGestor());
+    }
+
+    @PostMapping("/{id}/gestor/aprovar")
+    public PropostaResponse aprovarComoGestor(@PathVariable Long id) {
+        return PropostaResponse.from(propostaService.decidirComoGestor(id, true, null));
+    }
+
+    @PostMapping("/{id}/gestor/recusar")
+    public PropostaResponse recusarComoGestor(@PathVariable Long id,
+                                              @RequestBody(required = false) Map<String, String> corpo) {
+        String motivo = corpo != null ? corpo.get("motivo") : null;
+        return PropostaResponse.from(propostaService.decidirComoGestor(id, false, motivo));
     }
 }

@@ -60,7 +60,7 @@ public class ReservaController {
         return ReservaResponse.from(reservaService.cancelar(id));
     }
 
-    // ---------- Moderacao (Admin / Reitor) ----------
+    // ---------- Moderacao (Admin) ----------
 
     @GetMapping("/moderacao")
     public List<ReservaResponse> moderacao() {

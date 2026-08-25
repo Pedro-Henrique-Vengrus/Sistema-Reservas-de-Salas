@@ -24,8 +24,8 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /** ADMIN e REITOR operam o painel administrativo (o Reitor acumula os dois papeis). */
-    private static final String[] PERFIS_ADMINISTRATIVOS = { "ADMIN", "REITOR" };
+    /** Somente o ADMIN opera o painel; REITOR e PROFESSOR sao solicitantes. */
+    private static final String[] PERFIS_ADMINISTRATIVOS = { "ADMIN" };
 
     private final JwtAuthFilter jwtAuthFilter;
 
@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
                 // O proprio usuario sempre pode ler seu perfil e suas notificacoes
-                .requestMatchers("/api/usuarios/me", "/api/notificacoes/**").authenticated()
+                .requestMatchers("/api/usuarios/me", "/api/usuarios/me/**", "/api/notificacoes/**").authenticated()
 
                 // Leitura de catalogo e do estado da grade: qualquer autenticado
                 // (a visibilidade setorizada e aplicada no servico, nao aqui)
@@ -59,8 +59,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/usuarios", "/api/usuarios/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
                 .requestMatchers("/api/relatorios/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
                 .requestMatchers(HttpMethod.PUT, "/api/periodo-grade").hasAnyRole(PERFIS_ADMINISTRATIVOS)
-                .requestMatchers(HttpMethod.GET, "/api/reservas/moderacao", "/api/reservas/moderacao/**")
+                .requestMatchers(HttpMethod.GET, "/api/reservas/moderacao", "/api/reservas/moderacao/**",
+                                                 "/api/propostas/moderacao", "/api/propostas/moderacao/**")
                     .hasAnyRole(PERFIS_ADMINISTRATIVOS)
+                .requestMatchers("/api/propostas/*/gestor/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
 
                 // Escrita de catalogo (CRUD de ambientes e cursos)
                 .requestMatchers("/api/salas", "/api/salas/**",

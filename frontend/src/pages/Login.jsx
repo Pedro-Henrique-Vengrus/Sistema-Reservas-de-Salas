@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Field, Notice } from '../components/ui/primitives';
+import Logo from '../components/ui/Logo';
 
 const CONTAS = [
-  ['admin@campus.br', 'Admin', 'Painel completo, sem reservas próprias'],
-  ['reitor@campus.br', 'Reitor', 'Painel completo + reservas próprias'],
+  ['admin@campus.br', 'Admin', 'Único perfil com painel administrativo'],
+  ['reitor@campus.br', 'Reitor', 'Solicitante — Computação e Engenharia'],
   ['pedro@campus.br', 'Professor', 'Ciência da Computação'],
   ['carla@campus.br', 'Professor', 'Engenharia'],
 ];
@@ -35,7 +36,7 @@ export default function Login() {
     <div className="login">
       <section className="login-hero">
         <div className="row gap-2">
-          <span className="mark" aria-hidden style={{ fontSize: 28 }}>🏫</span>
+          <span className="login-mark"><Logo tamanho={30} /></span>
           <strong style={{ fontSize: 20, letterSpacing: '-.01em' }}>CampusFlow</strong>
         </div>
 

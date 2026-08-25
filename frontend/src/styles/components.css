@@ -28,12 +28,12 @@
   border-bottom: 1px solid rgba(255, 255, 255, .08);
   flex: 0 0 auto;
 }
+/* Chip claro: a marca tem volumes verde-escuros que sumiriam sobre a sidebar */
 .sidebar-brand .mark {
-  width: 30px; height: 30px; flex: 0 0 30px;
+  width: 34px; height: 34px; flex: 0 0 34px;
   border-radius: var(--r-md);
-  background: var(--brand-500);
+  background: var(--white);
   display: grid; place-items: center;
-  font-size: var(--fs-lg);
 }
 .sidebar-brand .name { color: var(--white); font-weight: 700; letter-spacing: -.01em; font-size: var(--fs-lg); }
 .sidebar.collapsed .sidebar-brand { padding: 0 var(--sp-5); }
@@ -279,6 +279,7 @@ table.data td.actions .btn + .btn { margin-left: var(--sp-2); }
 .check input { width: 15px; height: 15px; accent-color: var(--brand-600); cursor: pointer; }
 
 .switch { display: inline-flex; align-items: center; gap: var(--sp-3); cursor: pointer; }
+.switch.is-disabled { opacity: .6; cursor: wait; }
 .switch input { display: none; }
 .switch .track { width: 42px; height: 24px; border-radius: var(--r-full); background: var(--ink-300); position: relative; transition: background .15s ease; flex: 0 0 42px; }
 .switch .track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: var(--r-full); background: var(--white); box-shadow: var(--shadow-sm); transition: transform .15s ease; }
@@ -377,6 +378,12 @@ table.agenda td.slot { padding: 0; height: 42px; }
   background: linear-gradient(155deg, var(--brand-900) 0%, var(--brand-700) 55%, var(--brand-600) 100%);
   color: var(--white); padding: var(--sp-16); display: flex; flex-direction: column; justify-content: space-between;
 }
+/* Mesma razao do chip da sidebar: fundo claro sob o verde institucional */
+.login-mark {
+  width: 38px; height: 38px; flex: 0 0 38px;
+  border-radius: var(--r-md); background: var(--white);
+  display: grid; place-items: center;
+}
 .login-hero h1 { color: var(--white); font-size: 40px; line-height: 1.15; max-width: 16ch; }
 .login-hero p { color: var(--brand-100); font-size: var(--fs-lg); max-width: 46ch; margin-top: var(--sp-4); }
 .login-hero .feature { display: flex; gap: var(--sp-3); align-items: flex-start; color: var(--brand-100); font-size: var(--fs-md); }
@@ -393,10 +400,10 @@ table.agenda td.slot { padding: 0; height: 42px; }
 .notif-list { display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; }
 .notif {
   display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4);
-  border-bottom: 1px solid var(--ink-100); font-size: var(--fs-md); cursor: pointer; text-align: left; width: 100%;
+  border-bottom: 1px solid var(--ink-100); font-size: var(--fs-md); text-align: left; width: 100%;
 }
-.notif:hover { background: var(--ink-050); }
-.notif.unread { background: var(--brand-050); }
+/* Destaque das que chegaram desde a ultima abertura do painel */
+.notif.unread { background: var(--brand-050); border-left: 3px solid var(--brand-500); }
 .notif .ico { width: 28px; height: 28px; flex: 0 0 28px; border-radius: var(--r-full); background: var(--brand-100); color: var(--brand-700); display: grid; place-items: center; }
 .notif .ts { font-size: var(--fs-xs); color: var(--ink-400); margin-top: 2px; }
 

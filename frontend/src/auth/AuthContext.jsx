@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
     user,
     login,
     logout,
-    // ADMIN e REITOR operam o painel; o Reitor tambem solicita reservas proprias
+    // Somente o ADMIN opera o painel; REITOR e PROFESSOR sao solicitantes
     ehAdministrativo: !!user?.administrativo,
     ehSolicitante: user?.role === 'PROFESSOR' || user?.role === 'REITOR',
     semCurso: !!user && user.role !== 'ADMIN' && (user.cursos || []).length === 0,

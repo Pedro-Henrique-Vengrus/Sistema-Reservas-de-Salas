@@ -8,13 +8,13 @@ import br.unifil.campusflow.repository.ReservaRepository;
 import br.unifil.campusflow.repository.SalaRepository;
 import br.unifil.campusflow.repository.UsuarioRepository;
 import br.unifil.campusflow.security.UsuarioLogado;
+import br.unifil.campusflow.util.FormatoBr;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,6 @@ public class RelatorioService {
 
     private static final int LIMITE_RANKING = 8;
     private static final int LIMITE_PROXIMAS = 8;
-    private static final DateTimeFormatter DATA_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final ReservaRepository reservaRepository;
     private final SalaRepository salaRepository;
@@ -90,15 +89,15 @@ public class RelatorioService {
         StringBuilder csv = new StringBuilder();
         csv.append("Data;Inicio;Fim;Turno;Ambiente;Codigo;Solicitante;Modo;Status\n");
         for (Reserva r : pagina.getContent()) {
-            csv.append(r.getDataReserva().format(DATA_BR)).append(';')
-               .append(r.getHoraInicio()).append(';')
-               .append(r.getHoraFim()).append(';')
+            csv.append(FormatoBr.data(r.getDataReserva())).append(';')
+               .append(FormatoBr.hora(r.getHoraInicio())).append(';')
+               .append(FormatoBr.hora(r.getHoraFim())).append(';')
                .append(r.getTurno().getRotulo()).append(';')
                .append(escapar(r.getSala().getNome())).append(';')
                .append(escapar(r.getSala().getCodigo())).append(';')
                .append(escapar(r.getSolicitante().getNome())).append(';')
                .append(r.getTipoReserva().getRotulo()).append(';')
-               .append(r.getStatus().name()).append('\n');
+               .append(r.getStatus().getRotulo()).append('\n');
         }
         return csv.toString();
     }
