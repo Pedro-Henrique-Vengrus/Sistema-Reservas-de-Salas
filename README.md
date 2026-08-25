@@ -111,7 +111,8 @@ mvn spring-boot:run      # ou ./mvnw spring-boot:run
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui
 
-O Flyway aplica as migrations **V1–V14** e insere os dados de demonstração na primeira execução.
+O Flyway aplica as migrations **V1–V15** na primeira execução, deixando o banco pronto e vazio
+(apenas a conta de Admin — ver *Primeiro acesso* abaixo).
 
 ### 3. Rodar os testes
 
@@ -134,15 +135,27 @@ App em http://localhost:5173 (o Vite faz proxy de `/api` para `localhost:8080`).
 
 ---
 
-## 👥 Contas de demonstração (senha `123`)
+## 👥 Primeiro acesso
 
-| E-mail | Perfil | Cursos | Observação |
-|---|---|---|---|
-| `admin@campus.br` | ADMIN | — | Painel completo, sem reservas próprias |
-| `reitor@campus.br` | REITOR | CC, ENG | Solicitante, como o professor |
-| `pedro@campus.br` | PROFESSOR | CC | — |
-| `joao@campus.br` | PROFESSOR | CC, ENG | Tem reserva no mesmo turno do Pedro (testar troca) |
-| `carla@campus.br` | PROFESSOR | ENG | Não enxerga a Sala 1001 (testar visibilidade) |
+O banco nasce **vazio**: sem cursos, sem ambientes, sem reservas e com um único usuário — a conta
+administrativa. Todo o resto é montado pelo Admin, no painel.
+
+| E-mail | Senha | Perfil |
+|---|---|---|
+| `admin@campus.br` | `123` | ADMIN |
+
+Ordem sugerida para colocar o sistema de pé:
+
+1. **Cursos** — cadastre os cursos (nome + sigla). Nada mais funciona sem eles: a visibilidade
+   setorizada é ancorada no curso.
+2. **Ambientes** — cadastre as salas e laboratórios e **vincule cada um aos cursos** que podem
+   enxergá-lo. Ambiente sem curso vinculado não aparece para nenhum solicitante.
+3. **Usuários** — crie os professores e o reitor, atribuindo os cursos de cada um.
+4. **Período da grade** — começa **fechado**. Enquanto estiver assim, os solicitantes só conseguem
+   pedir reservas de última hora (que caem na moderação). Abra quando o preenchimento bimestral
+   for liberado pelo edital.
+
+> Trocar a senha do Admin no primeiro acesso é o recomendado — o hash que vem na migration é público.
 
 ---
 
@@ -213,7 +226,7 @@ campusflow/
 │     │  ├─ service/             # regras de negócio
 │     │  ├─ controller/          # REST
 │     │  └─ exception/           # handler global
-│     ├─ main/resources/db/migration/   # Flyway V1–V14
+│     ├─ main/resources/db/migration/   # Flyway V1–V15
 │     └─ test/java/…/service/    # testes das regras críticas
 └─ frontend/                     # React 18 + Vite
    └─ src/
