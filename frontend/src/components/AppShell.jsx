@@ -33,7 +33,9 @@ export default function AppShell() {
       pedidos.push(api.get('/propostas/pendentes/count').then((r) => { proximo.trocas = r.count; }).catch(() => {}));
     }
     if (ehAdministrativo) {
-      pedidos.push(api.get('/reservas/moderacao/count').then((r) => { proximo.moderacao = r.count; }).catch(() => {}));
+      // A fila de moderacao soma solicitacoes de ultima hora e trocas fora do dia/turno
+      pedidos.push(api.get('/reservas/moderacao/count').then((r) => { proximo.moderacao += r.count; }).catch(() => {}));
+      pedidos.push(api.get('/propostas/moderacao/count').then((r) => { proximo.moderacao += r.count; }).catch(() => {}));
     }
     await Promise.all(pedidos);
     setContadores(proximo);

@@ -73,8 +73,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
                                   @Param("excluirReservaId") Long excluirReservaId);
 
     /**
-     * Reservas de OUTROS professores elegiveis para proposta de troca:
-     * aprovadas, futuras, em sala visivel ao proponente e no mesmo dia/turno de alguma reserva dele.
+     * Reservas de OUTROS professores passiveis de proposta de troca: aprovadas, futuras
+     * e em sala visivel ao proponente. Dia e turno nao restringem mais o universo — apenas
+     * definem se a troca se resolve entre professores ou precisa do aval do gestor.
      */
     @Query("""
         SELECT r FROM Reserva r JOIN FETCH r.sala JOIN FETCH r.solicitante
@@ -86,11 +87,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
           AND EXISTS (SELECT 1 FROM Sala s JOIN s.cursos c
                        WHERE s.id = r.sala.id AND c.id IN :cursoIds
                          AND c.status = br.unifil.campusflow.domain.StatusRegistro.ATIVO)
-          AND EXISTS (SELECT 1 FROM Reserva m
-                       WHERE m.solicitante.id = :usuarioId
-                         AND m.status = br.unifil.campusflow.domain.StatusReserva.APROVADA
-                         AND m.dataReserva = r.dataReserva
-                         AND m.turno = r.turno)
         ORDER BY r.dataReserva, r.horaInicio
         """)
     List<Reserva> findElegiveisParaTroca(@Param("usuarioId") Long usuarioId,

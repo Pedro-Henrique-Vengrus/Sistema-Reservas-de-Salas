@@ -59,8 +59,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/usuarios", "/api/usuarios/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
                 .requestMatchers("/api/relatorios/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
                 .requestMatchers(HttpMethod.PUT, "/api/periodo-grade").hasAnyRole(PERFIS_ADMINISTRATIVOS)
-                .requestMatchers(HttpMethod.GET, "/api/reservas/moderacao", "/api/reservas/moderacao/**")
+                .requestMatchers(HttpMethod.GET, "/api/reservas/moderacao", "/api/reservas/moderacao/**",
+                                                 "/api/propostas/moderacao", "/api/propostas/moderacao/**")
                     .hasAnyRole(PERFIS_ADMINISTRATIVOS)
+                .requestMatchers("/api/propostas/*/gestor/**").hasAnyRole(PERFIS_ADMINISTRATIVOS)
 
                 // Escrita de catalogo (CRUD de ambientes e cursos)
                 .requestMatchers("/api/salas", "/api/salas/**",

@@ -34,27 +34,33 @@ public interface PropostaTrocaRepository extends JpaRepository<PropostaTroca, Lo
          + "AND p.status = br.unifil.campusflow.domain.StatusProposta.PENDENTE")
     long countPendentesRecebidas(@Param("donoId") Long donoId);
 
-    // Outras propostas pendentes que envolvem qualquer uma das reservas informadas (origem ou oferecida),
-    // usada para invalidar propostas concorrentes apos uma troca ser aceita
-    @Query("""
-        SELECT p FROM PropostaTroca p
-        JOIN FETCH p.reservaOrigem r JOIN FETCH r.solicitante
-        JOIN FETCH p.usuarioSolicitante
-        WHERE p.status = br.unifil.campusflow.domain.StatusProposta.PENDENTE
-          AND p.id <> :excluirId
-          AND (p.reservaOrigem.id IN :reservaIds OR p.reservaOferecida.id IN :reservaIds)
-        """)
-    List<PropostaTroca> findPendentesEnvolvendo(@Param("reservaIds") List<Long> reservaIds,
-                                                @Param("excluirId") Long excluirId);
+    String EM_ABERTO = "p.status IN (br.unifil.campusflow.domain.StatusProposta.PENDENTE, "
+            + "br.unifil.campusflow.domain.StatusProposta.AGUARDANDO_GESTOR)";
 
-    /** Propostas pendentes atingidas pelo cancelamento de uma reserva. */
-    @Query("""
-        SELECT p FROM PropostaTroca p
-        JOIN FETCH p.reservaOrigem r JOIN FETCH r.solicitante
-        JOIN FETCH p.usuarioSolicitante
-        WHERE p.status = br.unifil.campusflow.domain.StatusProposta.PENDENTE
-          AND (p.reservaOrigem.id = :reservaId OR p.reservaOferecida.id = :reservaId)
-        """)
+    // Outras propostas em aberto que envolvem qualquer uma das reservas informadas (origem ou
+    // oferecida), usada para invalidar propostas concorrentes apos uma troca ser efetivada
+    @Query("SELECT p FROM PropostaTroca p "
+         + "JOIN FETCH p.reservaOrigem r JOIN FETCH r.solicitante "
+         + "JOIN FETCH p.usuarioSolicitante "
+         + "WHERE " + EM_ABERTO + " AND p.id <> :excluirId "
+         + "AND (p.reservaOrigem.id IN :reservaIds OR p.reservaOferecida.id IN :reservaIds)")
+    List<PropostaTroca> findEmAbertoEnvolvendo(@Param("reservaIds") List<Long> reservaIds,
+                                               @Param("excluirId") Long excluirId);
+
+    // Fila do gestor: trocas fora do mesmo dia/turno ja aceitas pelo professor dono
+    @Query(FETCH + " WHERE p.status = br.unifil.campusflow.domain.StatusProposta.AGUARDANDO_GESTOR "
+         + "ORDER BY p.dataModificacao ASC")
+    List<PropostaTroca> findAguardandoGestor();
+
+    @Query("SELECT COUNT(p) FROM PropostaTroca p "
+         + "WHERE p.status = br.unifil.campusflow.domain.StatusProposta.AGUARDANDO_GESTOR")
+    long countAguardandoGestor();
+
+    /** Propostas em aberto atingidas pelo cancelamento de uma reserva. */
+    @Query("SELECT p FROM PropostaTroca p "
+         + "JOIN FETCH p.reservaOrigem r JOIN FETCH r.solicitante "
+         + "JOIN FETCH p.usuarioSolicitante "
+         + "WHERE " + EM_ABERTO + " AND (p.reservaOrigem.id = :reservaId OR p.reservaOferecida.id = :reservaId)")
     List<PropostaTroca> findPendentesDaReserva(@Param("reservaId") Long reservaId);
 
     @Query("SELECT COUNT(p) FROM PropostaTroca p WHERE p.reservaOrigem.id IN :reservaIds "

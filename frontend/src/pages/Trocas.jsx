@@ -51,11 +51,16 @@ export default function Trocas() {
   const pendentesRecebidas = recebidas.filter((p) => p.status === 'PENDENTE').length;
 
   const colunas = [
-    { chave: 'data', titulo: 'Dia / turno', largura: 170,
+    { chave: 'origemData', titulo: 'Dia / turno', largura: 180,
       render: (p) => (
         <div>
-          <span className="nowrap">{dataBr(p.data)} <span className="text-muted text-sm">{diaDaSemana(p.data, true)}</span></span>
-          <div className="mt-2"><StatusBadge valor={p.turno} /></div>
+          <span className="nowrap">
+            {dataBr(p.origemData)} <span className="text-muted text-sm">{diaDaSemana(p.origemData, true)}</span>
+          </span>
+          <div className="mt-2"><StatusBadge valor={p.origemTurno} /></div>
+          {p.exigeAvalDoGestor && (
+            <div className="text-sm text-muted" style={{ marginTop: 4 }}>fora do dia/turno</div>
+          )}
         </div>
       ) },
     { chave: 'contraparte', titulo: aba === 'recebidas' ? 'Proposta por' : 'Enviada para',
@@ -85,7 +90,7 @@ export default function Trocas() {
           {aba === 'recebidas' && p.status === 'PENDENTE' && (
             <button className="btn btn-sm" onClick={() => agir(p, 'aceitar')}>Aceitar</button>
           )}
-          {aba === 'enviadas' && p.status === 'PENDENTE' && (
+          {aba === 'enviadas' && (p.status === 'PENDENTE' || p.status === 'AGUARDANDO_GESTOR') && (
             <button className="btn btn-danger btn-sm" onClick={() => agir(p, 'cancelar')}>Cancelar</button>
           )}
         </>
@@ -95,7 +100,7 @@ export default function Trocas() {
   return (
     <>
       <PageHeader titulo="Trocas de sala"
-        descricao="A troca é mútua: cada professor assume a reserva do outro. Só é possível entre reservas aprovadas no mesmo dia e no mesmo turno."
+        descricao="A troca é mútua: cada professor assume a reserva do outro. No mesmo dia e turno, o aceite do professor já resolve; fora disso, a troca ainda passa pelo aval do gestor."
         acoes={<Link className="btn btn-secondary" to="/agenda">Procurar na agenda</Link>} />
 
       {erro && <div className="mb-4"><Notice tom="danger">{erro}</Notice></div>}
@@ -120,7 +125,7 @@ export default function Trocas() {
 
       {detalhe && (
         <Modal titulo="Proposta de troca" tamanho="lg" onClose={() => setDetalhe(null)}
-          subtitulo={`${dataBr(detalhe.data)} · turno ${detalhe.turno.toLowerCase()}`}
+          subtitulo={`${dataBr(detalhe.origemData)} · turno ${detalhe.origemTurno.toLowerCase()}`}
           rodape={(
             <>
               <button className="btn btn-secondary" onClick={() => setDetalhe(null)}>Fechar</button>
@@ -130,7 +135,7 @@ export default function Trocas() {
                   <button className="btn" onClick={() => agir(detalhe, 'aceitar')}>Aceitar troca</button>
                 </>
               )}
-              {aba === 'enviadas' && detalhe.status === 'PENDENTE' && (
+              {aba === 'enviadas' && (detalhe.status === 'PENDENTE' || detalhe.status === 'AGUARDANDO_GESTOR') && (
                 <button className="btn btn-danger" onClick={() => agir(detalhe, 'cancelar')}>Cancelar proposta</button>
               )}
             </>
@@ -140,7 +145,9 @@ export default function Trocas() {
               <h4 className="mb-4">Reserva desejada</h4>
               <dl className="dl">
                 <dt>Ambiente</dt><dd>{detalhe.salaDesejada}</dd>
-                <dt>Horário</dt><dd>{hhmm(detalhe.origemInicio)}–{hhmm(detalhe.origemFim)}</dd>
+                <dt>Quando</dt>
+                <dd>{dataBr(detalhe.origemData)} · {hhmm(detalhe.origemInicio)}–{hhmm(detalhe.origemFim)}</dd>
+                <dt>Turno</dt><dd><StatusBadge valor={detalhe.origemTurno} /></dd>
                 <dt>Hoje é de</dt><dd>{detalhe.donoNome}</dd>
               </dl>
             </div>
@@ -148,8 +155,11 @@ export default function Trocas() {
               <h4 className="mb-4">Reserva oferecida</h4>
               <dl className="dl">
                 <dt>Ambiente</dt><dd>{detalhe.salaOferecida || '—'}</dd>
-                <dt>Horário</dt>
-                <dd>{detalhe.oferecidaInicio ? `${hhmm(detalhe.oferecidaInicio)}–${hhmm(detalhe.oferecidaFim)}` : '—'}</dd>
+                <dt>Quando</dt>
+                <dd>{detalhe.oferecidaData
+                  ? `${dataBr(detalhe.oferecidaData)} · ${hhmm(detalhe.oferecidaInicio)}–${hhmm(detalhe.oferecidaFim)}`
+                  : '—'}</dd>
+                <dt>Turno</dt><dd><StatusBadge valor={detalhe.oferecidaTurno} /></dd>
                 <dt>Hoje é de</dt><dd>{detalhe.solicitanteNome}</dd>
               </dl>
             </div>
@@ -159,6 +169,13 @@ export default function Trocas() {
             <h4 className="mb-4">Justificativa</h4>
             <Notice tom="info">{detalhe.justificativa}</Notice>
           </div>
+
+          {detalhe.exigeAvalDoGestor && (
+            <Notice tom="warn">
+              Troca fora do mesmo dia/turno: depois do aceite do professor, ela ainda depende
+              do aval do gestor para se efetivar.
+            </Notice>
+          )}
 
           <div className="row gap-2">
             <span className="text-muted text-md">Status atual:</span>
