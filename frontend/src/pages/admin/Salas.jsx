@@ -5,6 +5,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import {
   ConfirmDialog, Drawer, EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
+import DialogoExclusao from '../../components/admin/DialogoExclusao';
 
 const VAZIO = { nome: '', codigo: '', tipo: 'SALA_AULA', capacidade: 40, andar: '', cursoIds: [] };
 
@@ -16,7 +17,8 @@ export default function Salas() {
   const [tipos, setTipos] = useState([]);
   const [filtros, setFiltros] = useState({ status: '', tipo: '', cursoId: '' });
   const [form, setForm] = useState(null);
-  const [acao, setAcao] = useState(null);      // { sala, tipo: 'inativar'|'reativar'|'excluir', detalhes? }
+  const [acao, setAcao] = useState(null);      // apenas reativacao
+  const [excluindo, setExcluindo] = useState(null);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [ocupado, setOcupado] = useState(false);
@@ -47,31 +49,11 @@ export default function Salas() {
     } catch (e) { toast.erro(e.message); } finally { setOcupado(false); }
   }
 
-  /** Primeiro tenta sem forcar: a API devolve 409 com o impacto quando ha reservas futuras. */
-  async function pedirInativacao(sala) {
-    try {
-      await api.del(`/salas/${sala.id}`);
-      toast.sucesso('Ambiente inativado.');
-      carregar();
-    } catch (e) {
-      if (e.status === 409 && e.detalhes) setAcao({ sala, tipo: 'inativar', detalhes: e.detalhes, mensagem: e.message });
-      else toast.erro(e.message);
-    }
-  }
-
-  async function confirmarAcao() {
+  async function reativar() {
     setOcupado(true);
     try {
-      if (acao.tipo === 'inativar') {
-        await api.del(`/salas/${acao.sala.id}?forcar=true`);
-        toast.sucesso('Ambiente inativado e reservas futuras canceladas.');
-      } else if (acao.tipo === 'reativar') {
-        await api.post(`/salas/${acao.sala.id}/reativar`);
-        toast.sucesso('Ambiente reativado.');
-      } else {
-        await api.del(`/salas/${acao.sala.id}/permanente`);
-        toast.sucesso('Ambiente excluído definitivamente.');
-      }
+      await api.post(`/salas/${acao.sala.id}/reativar`);
+      toast.sucesso('Ambiente reativado.');
       setAcao(null);
       carregar();
     } catch (e) { toast.erro(e.message); } finally { setOcupado(false); }
@@ -102,16 +84,11 @@ export default function Salas() {
               id: s.id, nome: s.nome, codigo: s.codigo || '', tipo: s.tipo,
               capacidade: s.capacidade, andar: s.andar || '', cursoIds: s.cursos.map((c) => c.id),
             })}>Editar</button>
-          {s.status === 'ATIVO'
-            ? <button className="btn btn-danger btn-sm" onClick={() => pedirInativacao(s)}>Inativar</button>
-            : (
-              <>
-                <button className="btn btn-secondary btn-sm"
-                  onClick={() => setAcao({ sala: s, tipo: 'reativar' })}>Reativar</button>
-                <button className="btn btn-danger btn-sm"
-                  onClick={() => setAcao({ sala: s, tipo: 'excluir' })}>Excluir</button>
-              </>
-            )}
+          {s.status === 'INATIVO' && (
+            <button className="btn btn-secondary btn-sm"
+              onClick={() => setAcao({ sala: s, tipo: 'reativar' })}>Reativar</button>
+          )}
+          <button className="btn btn-danger btn-sm" onClick={() => setExcluindo(s)}>Excluir</button>
         </>
       ) },
   ];
@@ -222,27 +199,21 @@ export default function Salas() {
         </Drawer>
       )}
 
-      {acao && (
+      {acao?.tipo === 'reativar' && (
         <ConfirmDialog
-          titulo={{
-            inativar: 'Inativar ambiente com reservas ativas',
-            reativar: 'Reativar ambiente',
-            excluir: 'Excluir definitivamente',
-          }[acao.tipo]}
-          tom={acao.tipo === 'reativar' ? 'ok' : 'danger'}
-          confirmarTexto={{
-            inativar: 'Inativar e cancelar reservas',
-            reativar: 'Reativar',
-            excluir: 'Excluir definitivamente',
-          }[acao.tipo]}
-          mensagem={acao.mensagem || {
-            reativar: `${acao.sala.nome} volta a aceitar reservas dos cursos vinculados.`,
-            excluir: `${acao.sala.nome} será removido do banco de dados. A operação só é permitida quando não há histórico de reservas.`,
-          }[acao.tipo]}
-          detalhes={acao.detalhes}
+          titulo="Reativar ambiente"
+          tom="ok"
+          confirmarTexto="Reativar"
+          mensagem={`${acao.sala.nome} volta a aceitar reservas dos cursos vinculados.`}
           ocupado={ocupado}
-          onConfirm={confirmarAcao}
+          onConfirm={reativar}
           onClose={() => setAcao(null)} />
+      )}
+
+      {excluindo && (
+        <DialogoExclusao recurso="salas" rotulo="ambiente" item={excluindo}
+          onFechar={() => setExcluindo(null)}
+          onConcluido={(msg) => { toast.sucesso(msg); setExcluindo(null); carregar(); }} />
       )}
     </>
   );

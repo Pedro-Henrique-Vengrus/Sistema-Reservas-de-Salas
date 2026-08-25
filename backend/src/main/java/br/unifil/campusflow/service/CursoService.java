@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -92,12 +93,25 @@ public class CursoService {
         List<Reserva> futuras = reservaRepository.findFuturasAtivasDoCurso(id, LocalDate.now());
         long usuariosVinculados = usuarioRepository.buscar(null, null, null, id).size();
         boolean podeExcluir = usuariosVinculados == 0 && futuras.isEmpty();
-        String bloqueio = podeExcluir ? null
-                : "Ha " + usuariosVinculados + " usuario(s) e " + futuras.size()
-                + " reserva(s) futura(s) vinculadas ao curso.";
+        String bloqueio = podeExcluir ? null : montarBloqueio(usuariosVinculados, futuras.size());
         return new ImpactoResponse(c.getId(), c.getNome(), futuras.size(), futuras.size(), usuariosVinculados,
                 futuras.isEmpty(), podeExcluir, bloqueio,
                 futuras.stream().map(ReservaResponse::from).toList());
+    }
+
+    /**
+     * Cita apenas o que realmente prende o curso. Listar o que esta zerado
+     * ("0 reserva(s) futura(s)") so confunde quem le o dialogo de exclusao.
+     */
+    private static String montarBloqueio(long usuarios, long reservasFuturas) {
+        List<String> motivos = new ArrayList<>();
+        if (usuarios > 0) {
+            motivos.add(usuarios + (usuarios == 1 ? " usuario vinculado" : " usuarios vinculados"));
+        }
+        if (reservasFuturas > 0) {
+            motivos.add(reservasFuturas + (reservasFuturas == 1 ? " reserva futura" : " reservas futuras"));
+        }
+        return "O curso ainda tem " + String.join(" e ", motivos) + ".";
     }
 
     /**
