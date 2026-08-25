@@ -21,10 +21,14 @@ public class NotificacaoService {
 
     private final NotificacaoRepository notificacaoRepository;
     private final UsuarioLogado usuarioLogado;
+    private final EmailService emailService;
 
-    public NotificacaoService(NotificacaoRepository notificacaoRepository, UsuarioLogado usuarioLogado) {
+    public NotificacaoService(NotificacaoRepository notificacaoRepository,
+                              UsuarioLogado usuarioLogado,
+                              EmailService emailService) {
         this.notificacaoRepository = notificacaoRepository;
         this.usuarioLogado = usuarioLogado;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -34,7 +38,11 @@ public class NotificacaoService {
         n.setTipo(tipo);
         n.setTitulo(titulo);
         n.setMensagem(truncar(mensagem, 500));
-        return notificacaoRepository.save(n);
+        Notificacao salva = notificacaoRepository.save(n);
+
+        // O sino e a via principal; o e-mail e um espelho opcional, por adesao
+        emailService.enviarSeAplicavel(destinatario, salva);
+        return salva;
     }
 
     @Transactional(readOnly = true)

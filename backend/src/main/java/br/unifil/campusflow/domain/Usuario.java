@@ -39,6 +39,10 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private StatusRegistro status = StatusRegistro.ATIVO;
 
+    // Adesao explicita: so recebe e-mail quem ligou a opcao
+    @Column(name = "receber_emails", nullable = false)
+    private Boolean receberEmails = false;
+
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
@@ -70,6 +74,9 @@ public class Usuario {
     public void setRole(Role role) { this.role = role; }
     public StatusRegistro getStatus() { return status; }
     public void setStatus(StatusRegistro status) { this.status = status; }
+    public Boolean getReceberEmails() { return receberEmails; }
+    public void setReceberEmails(Boolean receberEmails) { this.receberEmails = receberEmails; }
+    public boolean querReceberEmails() { return Boolean.TRUE.equals(receberEmails); }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime d) { this.dataCriacao = d; }
     public LocalDateTime getDataModificacao() { return dataModificacao; }

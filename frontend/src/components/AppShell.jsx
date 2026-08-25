@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { iniciais } from '../lib/format';
 import NotificacoesPopover from './NotificacoesPopover';
 import Logo from './ui/Logo';
+import Preferencias from './Preferencias';
 
 const ROTULOS = {
   '': 'Painel', agenda: 'Agenda', ambientes: 'Ambientes', 'minhas-reservas': 'Minhas reservas',
@@ -23,6 +24,7 @@ export default function AppShell() {
 
   const [colapsada, setColapsada] = useState(() => localStorage.getItem('cf_sidebar') === 'collapsed');
   const [contadores, setContadores] = useState({ trocas: 0, moderacao: 0, avisos: 0 });
+  const [preferencias, setPreferencias] = useState(false);
 
   const carregarContadores = useCallback(async () => {
     const proximo = { trocas: 0, moderacao: 0, avisos: 0 };
@@ -118,6 +120,8 @@ export default function AppShell() {
               <button className="btn btn-sm" onClick={() => navigate('/agenda')}>+ Nova reserva</button>
             )}
             <NotificacoesPopover naoLidas={contadores.avisos} aoAtualizar={carregarContadores} />
+            <button className="icon-btn" onClick={() => setPreferencias(true)}
+              title="Preferências" aria-label="Preferências">⚙</button>
             <div className="user-chip">
               <span className="avatar" aria-hidden>{iniciais(user?.nome)}</span>
               <span className="meta">
@@ -132,6 +136,8 @@ export default function AppShell() {
         <main className="content">
           <Outlet context={{ recarregarContadores: carregarContadores }} />
         </main>
+
+        {preferencias && <Preferencias onFechar={() => setPreferencias(false)} />}
       </div>
     </div>
   );

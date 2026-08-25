@@ -76,7 +76,7 @@ export function Field({ label, hint, erro, children, className = '' }) {
 
 export function Switch({ checked, onChange, label, disabled }) {
   return (
-    <label className="switch">
+    <label className={`switch ${disabled ? 'is-disabled' : ''}`}>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} disabled={disabled} />
       <span className="track" />
       {label && <span className="text-md">{label}</span>}

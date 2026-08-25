@@ -28,6 +28,13 @@ public class UsuarioController {
         return UsuarioResponse.from(usuarioService.eu());
     }
 
+    /** Preferencia de avisos por e-mail: cada usuario decide para si. */
+    @PutMapping("/me/preferencias")
+    public UsuarioResponse definirPreferencias(@RequestBody Map<String, Boolean> corpo) {
+        return UsuarioResponse.from(
+                usuarioService.definirReceberEmails(Boolean.TRUE.equals(corpo.get("receberEmails"))));
+    }
+
     @GetMapping
     public List<UsuarioResponse> listar(@RequestParam(required = false) String termo,
                                         @RequestParam(required = false) Role role,

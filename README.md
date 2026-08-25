@@ -37,6 +37,28 @@ Dia e turno decidem **quem aprova**:
 O sistema revalida o cenário antes de efetivar — reservas podem ter mudado entre o aceite e a decisão do
 gestor. Propostas concorrentes envolvendo as mesmas reservas são invalidadas automaticamente.
 
+### Avisos por e-mail (opt-in)
+Todo aviso aparece no **sino** da aplicação. O e-mail no endereço acadêmico é um espelho
+**opcional** do ciclo da troca de sala: proposta recebida, encaminhada ao gestor, aceita,
+recusada ou cancelada. Três condições precisam ser verdadeiras para uma mensagem sair:
+
+1. O envio está habilitado no ambiente (`EMAIL_ENABLED=true` + `SMTP_HOST`);
+2. O usuário aderiu em **Preferências** (⚙ no cabeçalho) — ninguém recebe sem ativar;
+3. O assunto é uma troca de sala.
+
+O envio é assíncrono e nunca propaga erro: uma falha de SMTP não desfaz a troca nem
+derruba a requisição. Sem SMTP configurado o sistema apenas registra em log o que enviaria.
+
+```bash
+# Exemplo de configuração
+export EMAIL_ENABLED=true
+export SMTP_HOST=smtp.unifil.br
+export SMTP_PORT=587
+export SMTP_USER=campusflow
+export SMTP_PASSWORD=...
+export EMAIL_FROM=nao-responda@campusflow.unifil.br
+```
+
 ### Ciclo de vida e exclusão lógica
 `ATIVO → INATIVO (soft-delete) → exclusão física`, para Curso, Sala e Usuário.
 Ao inativar sala ou curso com reservas futuras ativas, o sistema **bloqueia** e devolve o impacto
@@ -89,7 +111,7 @@ mvn spring-boot:run      # ou ./mvnw spring-boot:run
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui
 
-O Flyway aplica as migrations **V1–V13** e insere os dados de demonstração na primeira execução.
+O Flyway aplica as migrations **V1–V14** e insere os dados de demonstração na primeira execução.
 
 ### 3. Rodar os testes
 
@@ -97,8 +119,8 @@ O Flyway aplica as migrations **V1–V13** e insere os dados de demonstração n
 cd backend && mvn test
 ```
 
-41 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
-visibilidade setorizada, os dois caminhos da troca (direta e com aval do gestor), inativação forçada, separação de perfis e derivação de turno.
+48 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
+visibilidade setorizada, os dois caminhos da troca (direta e com aval do gestor), as condições do envio de e-mail, inativação forçada, separação de perfis e derivação de turno.
 
 ### 4. Rodar o frontend
 
@@ -151,6 +173,7 @@ O sino do cabeçalho concentra as notificações (trocas, moderação, cancelame
 |---|---|---|
 | POST | `/api/auth/login` | público |
 | GET | `/api/usuarios/me` · `/api/notificacoes/**` | autenticado |
+| PUT | `/api/usuarios/me/preferencias` | autenticado (a própria adesão ao e-mail) |
 | GET | `/api/salas` (filtros: `termo`, `tipo`, `cursoId`, `capacidadeMinima`, `status`) | autenticado (visibilidade setorizada) |
 | GET | `/api/salas/tipos` · `/api/cursos` | autenticado |
 | POST/PUT | `/api/salas` · `/api/cursos` | ADMIN |
@@ -190,7 +213,7 @@ campusflow/
 │     │  ├─ service/             # regras de negócio
 │     │  ├─ controller/          # REST
 │     │  └─ exception/           # handler global
-│     ├─ main/resources/db/migration/   # Flyway V1–V13
+│     ├─ main/resources/db/migration/   # Flyway V1–V14
 │     └─ test/java/…/service/    # testes das regras críticas
 └─ frontend/                     # React 18 + Vite
    └─ src/
@@ -210,7 +233,7 @@ campusflow/
 
 | Tabela | Papel |
 |---|---|
-| `tb_usuario` | nome, e-mail, senha (BCrypt), `role`, `status` |
+| `tb_usuario` | nome, e-mail, senha (BCrypt), `role`, `status`, `receber_emails` |
 | `tb_usuario_curso` | **N:N** usuário ↔ curso |
 | `tb_curso` | nome, sigla, `status` |
 | `tb_sala` | nome, código, `tipo` (catálogo), capacidade, andar, `status` |

@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
                 // O proprio usuario sempre pode ler seu perfil e suas notificacoes
-                .requestMatchers("/api/usuarios/me", "/api/notificacoes/**").authenticated()
+                .requestMatchers("/api/usuarios/me", "/api/usuarios/me/**", "/api/notificacoes/**").authenticated()
 
                 // Leitura de catalogo e do estado da grade: qualquer autenticado
                 // (a visibilidade setorizada e aplicada no servico, nao aqui)
