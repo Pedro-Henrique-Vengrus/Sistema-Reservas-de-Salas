@@ -23,11 +23,11 @@ public class UsuarioLogado {
                 .orElseThrow(() -> new IllegalStateException("Usuario logado nao encontrado"));
     }
 
-    /** Exige ADMIN ou REITOR (o Reitor acumula os privilegios administrativos). */
+    /** Exige o perfil ADMIN: e o unico que opera o painel administrativo. */
     public Usuario exigirAdministrativo() {
         Usuario u = get();
         if (!u.ehAdministrativo()) {
-            throw new AcessoNegadoException("Acao restrita ao painel administrativo (Admin ou Reitor).");
+            throw new AcessoNegadoException("Acao restrita ao painel administrativo.");
         }
         return u;
     }

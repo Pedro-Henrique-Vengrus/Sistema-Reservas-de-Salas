@@ -128,10 +128,10 @@ class ReservaServiceTest {
     @Test
     @DisplayName("Aprovacao exige perfil administrativo e avisa o solicitante")
     void aprovacaoNotificaSolicitante() {
-        Usuario reitor = usuario(2L, "Marta", Role.REITOR, computacao);
+        Usuario admin = usuario(2L, "Administrador", Role.ADMIN);
         Reserva pendente = reserva(500L, professor, sala, amanha, "14:00", "16:00",
                 StatusReserva.PENDENTE_APROVACAO);
-        when(usuarioLogado.exigirAdministrativo()).thenReturn(reitor);
+        when(usuarioLogado.exigirAdministrativo()).thenReturn(admin);
         when(reservaRepository.findByIdComDados(500L)).thenReturn(Optional.of(pendente));
         when(reservaRepository.existeConflitoExceto(anyLong(), any(), any(), any(), anyLong())).thenReturn(false);
 
@@ -144,7 +144,7 @@ class ReservaServiceTest {
     @Test
     @DisplayName("Reserva ja avaliada nao volta para a fila de moderacao")
     void naoReavaliaReservaJaDecidida() {
-        when(usuarioLogado.exigirAdministrativo()).thenReturn(usuario(2L, "Marta", Role.REITOR, computacao));
+        when(usuarioLogado.exigirAdministrativo()).thenReturn(usuario(2L, "Administrador", Role.ADMIN));
         Reserva aprovada = reserva(501L, professor, sala, amanha, "14:00", "16:00", StatusReserva.APROVADA);
         when(reservaRepository.findByIdComDados(501L)).thenReturn(Optional.of(aprovada));
 

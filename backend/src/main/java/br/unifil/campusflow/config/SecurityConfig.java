@@ -24,8 +24,8 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /** ADMIN e REITOR operam o painel administrativo (o Reitor acumula os dois papeis). */
-    private static final String[] PERFIS_ADMINISTRATIVOS = { "ADMIN", "REITOR" };
+    /** Somente o ADMIN opera o painel; REITOR e PROFESSOR sao solicitantes. */
+    private static final String[] PERFIS_ADMINISTRATIVOS = { "ADMIN" };
 
     private final JwtAuthFilter jwtAuthFilter;
 

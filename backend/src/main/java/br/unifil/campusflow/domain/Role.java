@@ -3,17 +3,18 @@ package br.unifil.campusflow.domain;
 /**
  * Perfis do CampusFlow.
  *
- * O REITOR acumula os privilegios administrativos e tambem atua como solicitante
- * (cria reservas proprias), diferente do ADMIN, que administra o sistema.
+ * Somente o ADMIN opera o painel administrativo. O REITOR e um solicitante como
+ * o PROFESSOR: enxerga apenas os ambientes dos seus cursos, lanca reservas
+ * proprias e participa de trocas.
  */
 public enum Role {
     PROFESSOR,
     REITOR,
     ADMIN;
 
-    /** Perfis que operam o painel administrativo (moderacao, CRUDs, relatorios). */
+    /** Perfil que opera o painel administrativo (moderacao, CRUDs, relatorios). */
     public boolean ehAdministrativo() {
-        return this == ADMIN || this == REITOR;
+        return this == ADMIN;
     }
 
     /** Perfis que solicitam reservas em nome proprio. */

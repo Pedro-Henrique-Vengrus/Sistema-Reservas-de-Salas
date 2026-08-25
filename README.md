@@ -37,11 +37,14 @@ Ao inativar sala ou curso com reservas futuras ativas, o sistema **bloqueia** e 
 são canceladas e os solicitantes notificados. A exclusão física exige registro inativo e sem histórico.
 
 ### Perfis
-| Perfil | Painel administrativo | Solicita reservas |
-|---|---|---|
-| `PROFESSOR` | — | ✅ |
-| `REITOR` | ✅ | ✅ |
-| `ADMIN` | ✅ | — (lança em nome de terceiros) |
+Somente o **Admin** opera o painel administrativo. **Reitor e Professor têm a mesma visão**:
+enxergam apenas os ambientes dos seus cursos, lançam reservas próprias e participam de trocas.
+
+| Perfil | Painel administrativo | Solicita reservas | Visibilidade |
+|---|---|---|---|
+| `PROFESSOR` | — | ✅ | ambientes dos seus cursos |
+| `REITOR` | — | ✅ | ambientes dos seus cursos |
+| `ADMIN` | ✅ | — (lança em nome de terceiros) | catálogo completo |
 
 ---
 
@@ -87,8 +90,8 @@ O Flyway aplica as migrations **V1–V12** e insere os dados de demonstração n
 cd backend && mvn test
 ```
 
-33 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
-visibilidade setorizada, pré-requisito e efetivação da troca, inativação forçada e derivação de turno.
+35 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
+visibilidade setorizada, pré-requisito e efetivação da troca, inativação forçada, separação de perfis e derivação de turno.
 
 ### 4. Rodar o frontend
 
@@ -107,7 +110,7 @@ App em http://localhost:5173 (o Vite faz proxy de `/api` para `localhost:8080`).
 | E-mail | Perfil | Cursos | Observação |
 |---|---|---|---|
 | `admin@campus.br` | ADMIN | — | Painel completo, sem reservas próprias |
-| `reitor@campus.br` | REITOR | CC, ENG | Painel completo **e** reservas próprias |
+| `reitor@campus.br` | REITOR | CC, ENG | Solicitante, como o professor |
 | `pedro@campus.br` | PROFESSOR | CC | — |
 | `joao@campus.br` | PROFESSOR | CC, ENG | Tem reserva no mesmo turno do Pedro (testar troca) |
 | `carla@campus.br` | PROFESSOR | ENG | Não enxerga a Sala 1001 (testar visibilidade) |
@@ -123,7 +126,7 @@ App em http://localhost:5173 (o Vite faz proxy de `/api` para `localhost:8080`).
 - **Minhas reservas** — tabela com abas Ativas/Histórico e cancelamento.
 - **Trocas de sala** — propostas recebidas e enviadas, com detalhe lado a lado e cancelamento.
 
-**Administração (ADMIN e REITOR)**
+**Administração (somente ADMIN)**
 - **Painel** — métricas de reservas, ocupação por ambiente e por curso.
 - **Moderação** — fila de aprovação/recusa das solicitações de última hora.
 - **Usuários** — CRUD com exclusão lógica e atribuição de cursos.
@@ -143,20 +146,20 @@ O sino do cabeçalho concentra as notificações (trocas, moderação, cancelame
 | GET | `/api/usuarios/me` · `/api/notificacoes/**` | autenticado |
 | GET | `/api/salas` (filtros: `termo`, `tipo`, `cursoId`, `capacidadeMinima`, `status`) | autenticado (visibilidade setorizada) |
 | GET | `/api/salas/tipos` · `/api/cursos` | autenticado |
-| POST/PUT | `/api/salas` · `/api/cursos` | ADMIN, REITOR |
-| DELETE | `/api/salas/{id}?forcar=` · `/api/cursos/{id}?forcar=` | ADMIN, REITOR (inativação) |
-| DELETE | `/api/salas/{id}/permanente` · `/api/cursos/{id}/permanente` | ADMIN, REITOR (exclusão física) |
-| GET | `/api/salas/{id}/impacto` · `/api/cursos/{id}/impacto` | ADMIN, REITOR |
-| GET/POST/PUT/DELETE | `/api/usuarios/**` | ADMIN, REITOR |
+| POST/PUT | `/api/salas` · `/api/cursos` | ADMIN |
+| DELETE | `/api/salas/{id}?forcar=` · `/api/cursos/{id}?forcar=` | ADMIN (inativação) |
+| DELETE | `/api/salas/{id}/permanente` · `/api/cursos/{id}/permanente` | ADMIN (exclusão física) |
+| GET | `/api/salas/{id}/impacto` · `/api/cursos/{id}/impacto` | ADMIN |
+| GET/POST/PUT/DELETE | `/api/usuarios/**` | ADMIN |
 | GET | `/api/reservas/minhas` · `/api/reservas/agenda` · `/api/reservas/trocaveis` | autenticado |
 | POST | `/api/reservas` | autenticado (valida visibilidade, conflito e modo) |
-| DELETE | `/api/reservas/{id}` | dono ou perfil administrativo |
-| GET | `/api/reservas/moderacao` · POST `/api/reservas/{id}/aprovar` · `/recusar` | ADMIN, REITOR |
-| GET | `/api/reservas` (busca filtrada e paginada) | ADMIN, REITOR |
+| DELETE | `/api/reservas/{id}` | dono da reserva ou ADMIN |
+| GET | `/api/reservas/moderacao` · POST `/api/reservas/{id}/aprovar` · `/recusar` | ADMIN |
+| GET | `/api/reservas` (busca filtrada e paginada) | ADMIN |
 | GET/POST | `/api/propostas/**` (`aceitar`, `recusar`, `cancelar`) | autenticado |
 | GET | `/api/periodo-grade` | autenticado |
-| PUT | `/api/periodo-grade` | ADMIN, REITOR |
-| GET | `/api/relatorios/dashboard` · `/api/relatorios/reservas.csv` | ADMIN, REITOR |
+| PUT | `/api/periodo-grade` | ADMIN |
+| GET | `/api/relatorios/dashboard` · `/api/relatorios/reservas.csv` | ADMIN |
 
 Erros seguem um formato único (`ApiError`): 401, **403** (visibilidade/perfil), 404,
 **409** (conflito ou confirmação necessária, com `detalhes` do impacto), 422 (validação) e 500.
@@ -171,7 +174,7 @@ campusflow/
 ├─ backend/                      # Spring Boot 3.3 / Java 21
 │  └─ src/
 │     ├─ main/java/br/unifil/campusflow/
-│     │  ├─ config/              # SecurityConfig (RBAC ADMIN/REITOR)
+│     │  ├─ config/              # SecurityConfig (RBAC)
 │     │  ├─ security/            # JWT, UsuarioLogado
 │     │  ├─ domain/              # entidades + enums (Turno, StatusReserva, TipoReserva…)
 │     │  ├─ dto/                 # records request/response

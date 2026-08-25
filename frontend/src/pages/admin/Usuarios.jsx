@@ -180,7 +180,7 @@ export default function Usuarios() {
           </Field>
 
           <Field label="Perfil de acesso"
-            hint="Reitor acumula os privilégios administrativos e também solicita reservas próprias.">
+            hint="Somente o Admin opera o painel. Reitor e Professor solicitam reservas e enxergam apenas os ambientes dos seus cursos.">
             <select className="select" value={form.role}
               onChange={(e) => setForm({ ...form, role: e.target.value })}>
               {PERFIS.map((p) => <option key={p.valor} value={p.valor}>{p.rotulo}</option>)}

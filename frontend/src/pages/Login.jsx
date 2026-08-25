@@ -5,8 +5,8 @@ import { Field, Notice } from '../components/ui/primitives';
 import Logo from '../components/ui/Logo';
 
 const CONTAS = [
-  ['admin@campus.br', 'Admin', 'Painel completo, sem reservas próprias'],
-  ['reitor@campus.br', 'Reitor', 'Painel completo + reservas próprias'],
+  ['admin@campus.br', 'Admin', 'Único perfil com painel administrativo'],
+  ['reitor@campus.br', 'Reitor', 'Solicitante — Computação e Engenharia'],
   ['pedro@campus.br', 'Professor', 'Ciência da Computação'],
   ['carla@campus.br', 'Professor', 'Engenharia'],
 ];

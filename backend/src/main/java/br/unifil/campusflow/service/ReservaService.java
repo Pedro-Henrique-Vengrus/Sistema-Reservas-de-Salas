@@ -178,7 +178,7 @@ public class ReservaService {
     }
 
     // ------------------------------------------------------------------
-    // Moderacao (Admin / Reitor)
+    // Moderacao (Admin)
     // ------------------------------------------------------------------
 
     @Transactional(readOnly = true)
