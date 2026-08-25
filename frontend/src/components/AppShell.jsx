@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { api } from '../api/client';
 import { iniciais } from '../lib/format';
 import NotificacoesPopover from './NotificacoesPopover';
+import Logo from './ui/Logo';
 
 const ROTULOS = {
   '': 'Painel', agenda: 'Agenda', ambientes: 'Ambientes', 'minhas-reservas': 'Minhas reservas',
@@ -63,7 +64,7 @@ export default function AppShell() {
     <div className="shell">
       <nav className={`sidebar ${colapsada ? 'collapsed' : ''}`}>
         <div className="sidebar-brand">
-          <span className="mark" aria-hidden>🏫</span>
+          <span className="mark"><Logo tamanho={26} /></span>
           {!colapsada && <span className="name">CampusFlow</span>}
         </div>
 

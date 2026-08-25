@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Field, Notice } from '../components/ui/primitives';
+import Logo from '../components/ui/Logo';
 
 const CONTAS = [
   ['admin@campus.br', 'Admin', 'Painel completo, sem reservas próprias'],
@@ -35,7 +36,7 @@ export default function Login() {
     <div className="login">
       <section className="login-hero">
         <div className="row gap-2">
-          <span className="mark" aria-hidden style={{ fontSize: 28 }}>🏫</span>
+          <span className="login-mark"><Logo tamanho={30} /></span>
           <strong style={{ fontSize: 20, letterSpacing: '-.01em' }}>CampusFlow</strong>
         </div>
 
