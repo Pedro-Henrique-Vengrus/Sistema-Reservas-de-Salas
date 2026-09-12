@@ -64,6 +64,21 @@ public interface SalaRepository extends JpaRepository<Sala, Long> {
                               @Param("capacidadeMinima") Integer capacidadeMinima,
                               @Param("cursoId") Long cursoId);
 
+    /**
+     * Mesma regra de {@link #ehVisivelPara}, aplicada a um conjunto de uma vez.
+     * A agenda pergunta por dezenas de ambientes por semana; perguntar um a um seria
+     * uma consulta por ambiente.
+     */
+    @Query("""
+        SELECT DISTINCT s.id FROM Sala s JOIN s.cursos c
+        WHERE s.id IN :salaIds
+          AND s.status = br.unifil.campusflow.domain.StatusRegistro.ATIVO
+          AND c.id IN :cursoIds
+          AND c.status = br.unifil.campusflow.domain.StatusRegistro.ATIVO
+        """)
+    List<Long> filtrarVisiveis(@Param("salaIds") Collection<Long> salaIds,
+                               @Param("cursoIds") Collection<Long> cursoIds);
+
     /** Regra central de acesso: a sala pertence ao escopo de algum curso ativo do usuario? */
     @Query("""
         SELECT COUNT(s) > 0 FROM Sala s JOIN s.cursos c

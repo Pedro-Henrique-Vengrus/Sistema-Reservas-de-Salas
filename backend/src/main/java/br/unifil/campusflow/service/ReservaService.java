@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -68,16 +69,15 @@ public class ReservaService {
     @Transactional(readOnly = true)
     public List<Reserva> agenda(Collection<Long> salaIds, LocalDate inicio, LocalDate fim) {
         Usuario u = usuarioLogado.get();
-        List<Long> permitidas = salaIds.stream()
-                .filter(id -> visibilidade.podeVerSala(u, id))
-                .toList();
+        List<Long> permitidas = visibilidade.filtrarVisiveis(u, salaIds);
         if (permitidas.isEmpty()) return List.of();
         return reservaRepository.findAgenda(permitidas, inicio, fim);
     }
 
     /**
-     * Reservas de outros professores elegiveis para proposta de troca: aprovadas, futuras,
-     * em ambiente visivel e no mesmo dia/turno de alguma reserva aprovada do usuario.
+     * Reservas de outros professores elegiveis para proposta de troca: aprovadas, futuras
+     * e em ambiente visivel ao usuario. Dia e turno nao restringem o universo -- apenas
+     * decidem, mais tarde, se a troca se resolve entre professores ou precisa do gestor.
      */
     @Transactional(readOnly = true)
     public List<Reserva> elegiveisParaTroca(LocalDate data, Turno turno) {
@@ -103,8 +103,13 @@ public class ReservaService {
         if (!dto.horaFim().isAfter(dto.horaInicio())) {
             throw new ConflitoException("O horario de termino deve ser posterior ao de inicio.");
         }
-        if (dto.data().isBefore(LocalDate.now())) {
+        LocalDate hoje = LocalDate.now();
+        if (dto.data().isBefore(hoje)) {
             throw new ConflitoException("Nao e possivel reservar uma data passada.");
+        }
+        // Conferir so a data deixava passar uma reserva para hoje em horario ja vencido
+        if (dto.data().isEqual(hoje) && dto.horaInicio().isBefore(LocalTime.now())) {
+            throw new ConflitoException("Este horario ja passou. Escolha um horario futuro.");
         }
 
         Usuario solicitante = resolverSolicitante(logado, dto);

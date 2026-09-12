@@ -8,6 +8,8 @@ import br.unifil.campusflow.repository.SalaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,20 @@ public class VisibilidadeService {
         Set<Long> cursoIds = cursoIdsDe(usuario);
         if (cursoIds.isEmpty()) return false;
         return salaRepository.ehVisivelPara(salaId, cursoIds);
+    }
+
+    /**
+     * Versao em lote de {@link #podeVerSala}, com as mesmas condicoes.
+     * Usada onde o universo ja e conhecido (a agenda da semana), para nao repetir
+     * uma consulta por ambiente.
+     */
+    @Transactional(readOnly = true)
+    public List<Long> filtrarVisiveis(Usuario usuario, Collection<Long> salaIds) {
+        if (salaIds.isEmpty()) return List.of();
+        if (veTodoOCatalogo(usuario)) return List.copyOf(salaIds);
+        Set<Long> cursoIds = cursoIdsDe(usuario);
+        if (cursoIds.isEmpty()) return List.of();
+        return salaRepository.filtrarVisiveis(salaIds, cursoIds);
     }
 
     @Transactional(readOnly = true)

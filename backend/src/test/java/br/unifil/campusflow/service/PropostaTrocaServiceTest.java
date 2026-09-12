@@ -127,6 +127,36 @@ class PropostaTrocaServiceTest {
     }
 
     @Test
+    @DisplayName("Reenviar a mesma proposta e recusado enquanto a primeira estiver em aberto")
+    void bloqueiaPropostaDuplicada() {
+        Reserva desejada = reserva(1L, joao, salaA, dia, "19:00", "21:00", StatusReserva.APROVADA);
+        Reserva oferecida = reserva(2L, pedro, salaB, dia, "20:00", "22:00", StatusReserva.APROVADA);
+        reservasDisponiveis(desejada, oferecida);
+        when(propostaRepository.existeEmAbertoParaOMesmoPar(pedro.getId(), 1L, 2L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.criar(new PropostaRequest(1L, 2L, "justificativa")))
+                .isInstanceOf(ConflitoException.class)
+                .hasMessageContaining("ja tem uma proposta em aberto");
+
+        verify(propostaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Oferecer OUTRA reserva pela mesma desejada continua valendo")
+    void permiteOfertaAlternativa() {
+        Reserva desejada = reserva(1L, joao, salaA, dia, "19:00", "21:00", StatusReserva.APROVADA);
+        Reserva oferecida = reserva(2L, pedro, salaB, dia, "20:00", "22:00", StatusReserva.APROVADA);
+        reservasDisponiveis(desejada, oferecida);
+        // Ja existe proposta para OUTRO par; este par especifico esta livre
+        when(propostaRepository.existeEmAbertoParaOMesmoPar(pedro.getId(), 1L, 2L)).thenReturn(false);
+
+        PropostaTroca p = service.criar(new PropostaRequest(1L, 2L, "justificativa"));
+
+        assertThat(p.getStatus()).isEqualTo(StatusProposta.PENDENTE);
+        verify(propostaRepository).save(any());
+    }
+
+    @Test
     @DisplayName("Somente o dono da reserva desejada responde a proposta")
     void terceiroNaoRespondeProposta() {
         Reserva desejada = reserva(1L, joao, salaA, dia, "19:00", "21:00", StatusReserva.APROVADA);
