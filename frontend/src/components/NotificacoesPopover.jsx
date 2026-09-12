@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { dataHoraBr } from '../lib/format';
 import { EmptyState } from './ui/primitives';
+import Icone from './ui/Icone';
 
+// Assunto do aviso -> icone. Reserva usa o marcador; troca, as setas.
 const ICONES = {
-  RESERVA_APROVADA: '✓', RESERVA_RECUSADA: '✕', RESERVA_CANCELADA: '⊘', RESERVA_CRIADA: '＋',
-  TROCA_RECEBIDA: '⇄', TROCA_ACEITA: '⇄', TROCA_RECUSADA: '⇄', TROCA_CANCELADA: '⇄',
-  AMBIENTE_INATIVADO: '🏛', CURSO_INATIVADO: '🎓',
+  RESERVA_APROVADA: 'ok', RESERVA_RECUSADA: 'marcador', RESERVA_CANCELADA: 'marcador',
+  RESERVA_CRIADA: 'reservas',
+  TROCA_RECEBIDA: 'troca', TROCA_ACEITA: 'troca', TROCA_RECUSADA: 'troca', TROCA_CANCELADA: 'troca',
+  TROCA_AGUARDA_GESTOR: 'moderacao',
+  AMBIENTE_INATIVADO: 'ambiente', CURSO_INATIVADO: 'cursos',
 };
 
 /** Sino de avisos do cabecalho: trocas, moderacao e cancelamentos forcados. */
@@ -39,7 +43,7 @@ export default function NotificacoesPopover({ naoLidas, aoAtualizar }) {
   return (
     <div className="popover-anchor" ref={ref}>
       <button className="icon-btn" onClick={() => setAberto((a) => !a)} title="Notificações" aria-label="Notificações">
-        <span aria-hidden>🔔</span>
+        <Icone nome="sino" tamanho={18} />
         {naoLidas > 0 && <span className="dot">{naoLidas > 99 ? '99+' : naoLidas}</span>}
       </button>
 
@@ -54,7 +58,7 @@ export default function NotificacoesPopover({ naoLidas, aoAtualizar }) {
           <div className="notif-list">
             {itens.map((n) => (
               <div key={n.id} className={`notif ${n.lida ? '' : 'unread'}`}>
-                <span className="ico" aria-hidden>{ICONES[n.tipo] || '•'}</span>
+                <span className="ico"><Icone nome={ICONES[n.tipo] || 'sino'} tamanho={15} /></span>
                 <span className="grow">
                   <strong className="text-md">{n.titulo}</strong>
                   <span className="text-sm text-muted" style={{ display: 'block' }}>{n.mensagem}</span>
@@ -63,7 +67,7 @@ export default function NotificacoesPopover({ naoLidas, aoAtualizar }) {
               </div>
             ))}
             {itens.length === 0 && (
-              <EmptyState icone="🔔" titulo="Tudo em dia" descricao="Você não tem avisos no momento." />
+              <EmptyState icone={<Icone nome="sino" tamanho={30} />} titulo="Tudo em dia" descricao="Você não tem avisos no momento." />
             )}
           </div>
         </div>

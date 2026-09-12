@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Icone from './Icone';
 
 /**
  * Campo de data que exibe sempre dd/mm/aaaa.
@@ -42,7 +43,7 @@ export default function CampoData({ value = '', onChange, min, max, disabled, id
         onChange={(e) => digitar(e.target.value)} onBlur={sair} />
 
       <button type="button" className="campo-data-btn" onClick={abrirCalendario}
-        disabled={disabled} tabIndex={-1} aria-label="Escolher no calendário">🗓</button>
+        disabled={disabled} tabIndex={-1} aria-label="Escolher no calendário"><Icone nome="calendario" tamanho={15} /></button>
 
       {/* Fora do fluxo de foco: existe apenas para abrir o seletor nativo. */}
       <input ref={nativo} type="date" className="campo-data-nativo" tabIndex={-1} aria-hidden="true"

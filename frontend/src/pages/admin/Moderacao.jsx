@@ -7,6 +7,7 @@ import {
   EmptyState, Field, Modal, Notice, PageHeader, Segmented, StatusBadge,
 } from '../../components/ui/primitives';
 import { dataBr, diaDaSemana, hhmm } from '../../lib/format';
+import Icone from '../../components/ui/Icone';
 
 /**
  * Fila de decisao do gestor, em duas frentes:
@@ -152,14 +153,14 @@ export default function Moderacao() {
         <DataTable colunas={colunasReservas} dados={reservas} porPagina={15}
           buscaPlaceholder="Buscar por solicitante, ambiente…"
           ordemInicial={{ chave: 'data', dir: 'asc' }}
-          vazio={<EmptyState icone="✓" titulo="Nenhuma reserva na fila"
+          vazio={<EmptyState icone={<Icone nome="ok" tamanho={30} />} titulo="Nenhuma reserva na fila"
             descricao="Solicitações de última hora aguardando decisão aparecem aqui." />} />
       )}
 
       {!carregando && aba === 'trocas' && (
         <DataTable colunas={colunasTrocas} dados={trocas} porPagina={15}
           buscaPlaceholder="Buscar por professor, ambiente…"
-          vazio={<EmptyState icone="⇄" titulo="Nenhuma troca aguardando aval"
+          vazio={<EmptyState icone={<Icone nome="troca" tamanho={30} />} titulo="Nenhuma troca aguardando aval"
             descricao="Trocas no mesmo dia e turno se resolvem entre os professores. Só as fora desse padrão chegam aqui, depois do aceite do professor." />} />
       )}
 

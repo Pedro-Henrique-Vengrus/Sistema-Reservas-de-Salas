@@ -6,6 +6,7 @@ import {
   ConfirmDialog, Drawer, EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
 import DialogoExclusao from '../../components/admin/DialogoExclusao';
+import Icone from '../../components/ui/Icone';
 
 const VAZIO = { nome: '', codigo: '', tipo: 'SALA_AULA', capacidade: 40, andar: '', cursoIds: [] };
 
@@ -135,7 +136,7 @@ export default function Salas() {
           <DataTable colunas={colunas} dados={salas} porPagina={15}
             buscaPlaceholder="Buscar por nome ou código…"
             classeLinha={(s) => (s.status === 'INATIVO' ? 'dim' : '')}
-            vazio={<EmptyState icone="🏛" titulo="Nenhum ambiente encontrado"
+            vazio={<EmptyState icone={<Icone nome="ambiente" tamanho={30} />} titulo="Nenhum ambiente encontrado"
               descricao="Ajuste os filtros ou cadastre um novo ambiente." />} />
         )}
 

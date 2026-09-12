@@ -7,6 +7,7 @@ import {
   ConfirmDialog, EmptyState, Notice, PageHeader, Segmented, StatusBadge,
 } from '../components/ui/primitives';
 import { dataBr, diaDaSemana, hhmm, reservaPassada } from '../lib/format';
+import Icone from '../components/ui/Icone';
 
 export default function MinhasReservas() {
   const toast = useToast();
@@ -92,7 +93,7 @@ export default function MinhasReservas() {
             buscaPlaceholder="Buscar por ambiente, status…"
             ordemInicial={{ chave: 'data', dir: aba === 'futuras' ? 'asc' : 'desc' }}
             classeLinha={(r) => (reservaPassada(r) ? 'dim' : '')}
-            vazio={<EmptyState icone="🔖"
+            vazio={<EmptyState icone={<Icone nome="marcador" tamanho={30} />}
               titulo={aba === 'futuras' ? 'Nenhuma reserva ativa' : 'Histórico vazio'}
               descricao={aba === 'futuras'
                 ? 'Abra a agenda para reservar um ambiente do seu curso.'

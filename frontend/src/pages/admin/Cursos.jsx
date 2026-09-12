@@ -6,6 +6,7 @@ import {
   ConfirmDialog, Drawer, EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
 import DialogoExclusao from '../../components/admin/DialogoExclusao';
+import Icone from '../../components/ui/Icone';
 
 const VAZIO = { nome: '', sigla: '' };
 
@@ -97,7 +98,7 @@ export default function Cursos() {
         : (
           <DataTable colunas={colunas} dados={cursos} buscaPlaceholder="Buscar por nome ou sigla…"
             classeLinha={(c) => (c.status === 'INATIVO' ? 'dim' : '')}
-            vazio={<EmptyState icone="🎓" titulo="Nenhum curso encontrado"
+            vazio={<EmptyState icone={<Icone nome="cursos" tamanho={30} />} titulo="Nenhum curso encontrado"
               descricao="Cadastre um curso para vincular usuários e ambientes." />} />
         )}
 

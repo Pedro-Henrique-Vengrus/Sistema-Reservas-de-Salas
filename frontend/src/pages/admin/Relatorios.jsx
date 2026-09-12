@@ -5,6 +5,7 @@ import {
   EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
 import CampoData from '../../components/ui/CampoData';
+import Icone from '../../components/ui/Icone';
 import {
   dataBr, diaDaSemana, hhmm, hojeIso, somaDias, STATUS_RESERVA, TIPOS_RESERVA, TURNOS,
 } from '../../lib/format';
@@ -197,7 +198,7 @@ export default function Relatorios() {
             )}
 
           {!carregando && linhas.length === 0 && (
-            <EmptyState icone="📊" titulo="Nenhuma reserva no recorte"
+            <EmptyState icone={<Icone nome="relatorios" tamanho={30} />} titulo="Nenhuma reserva no recorte"
               descricao="Amplie o período ou remova alguns filtros." />
           )}
         </div>
