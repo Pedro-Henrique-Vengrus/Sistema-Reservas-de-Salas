@@ -7,6 +7,7 @@ import {
   EmptyState, Modal, Notice, PageHeader, Segmented, StatusBadge,
 } from '../components/ui/primitives';
 import { dataBr, diaDaSemana, hhmm } from '../lib/format';
+import Icone from '../components/ui/Icone';
 
 /** Propostas de troca recebidas e enviadas, com o detalhe lado a lado das duas reservas. */
 export default function Trocas() {
@@ -116,7 +117,7 @@ export default function Trocas() {
         ? <div className="panel"><div className="skeleton" style={{ height: 180 }} /></div>
         : (
           <DataTable colunas={colunas} dados={lista} buscaPlaceholder="Buscar por professor, ambiente…"
-            vazio={<EmptyState icone="⇄"
+            vazio={<EmptyState icone={<Icone nome="troca" tamanho={30} />}
               titulo={aba === 'recebidas' ? 'Nenhuma proposta recebida' : 'Nenhuma proposta enviada'}
               descricao={aba === 'recebidas'
                 ? 'Quando outro professor quiser trocar de sala com você, a proposta aparece aqui.'

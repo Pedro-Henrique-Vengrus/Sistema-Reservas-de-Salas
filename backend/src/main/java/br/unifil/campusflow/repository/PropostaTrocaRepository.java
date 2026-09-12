@@ -37,6 +37,20 @@ public interface PropostaTrocaRepository extends JpaRepository<PropostaTroca, Lo
     String EM_ABERTO = "p.status IN (br.unifil.campusflow.domain.StatusProposta.PENDENTE, "
             + "br.unifil.campusflow.domain.StatusProposta.AGUARDANDO_GESTOR)";
 
+    /**
+     * Ja existe proposta em aberto deste proponente para exatamente este par de reservas?
+     * Oferecer OUTRA reserva pela mesma desejada continua valendo -- e uma alternativa real
+     * para quem responde; reenviar o mesmo par so duplica a fila do outro professor.
+     */
+    @Query("SELECT COUNT(p) > 0 FROM PropostaTroca p "
+         + "WHERE p.usuarioSolicitante.id = :usuarioId "
+         + "AND p.reservaOrigem.id = :desejadaId "
+         + "AND p.reservaOferecida.id = :oferecidaId "
+         + "AND " + EM_ABERTO)
+    boolean existeEmAbertoParaOMesmoPar(@Param("usuarioId") Long usuarioId,
+                                        @Param("desejadaId") Long desejadaId,
+                                        @Param("oferecidaId") Long oferecidaId);
+
     // Outras propostas em aberto que envolvem qualquer uma das reservas informadas (origem ou
     // oferecida), usada para invalidar propostas concorrentes apos uma troca ser efetivada
     @Query("SELECT p FROM PropostaTroca p "

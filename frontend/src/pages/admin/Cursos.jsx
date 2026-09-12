@@ -5,6 +5,8 @@ import { useToast } from '../../components/ui/ToastProvider';
 import {
   ConfirmDialog, Drawer, EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
+import DialogoExclusao from '../../components/admin/DialogoExclusao';
+import Icone from '../../components/ui/Icone';
 
 const VAZIO = { nome: '', sigla: '' };
 
@@ -14,7 +16,8 @@ export default function Cursos() {
   const [cursos, setCursos] = useState([]);
   const [filtros, setFiltros] = useState({ status: '' });
   const [form, setForm] = useState(null);
-  const [acao, setAcao] = useState(null);
+  const [acao, setAcao] = useState(null);      // apenas reativacao
+  const [excluindo, setExcluindo] = useState(null);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [ocupado, setOcupado] = useState(false);
@@ -40,30 +43,11 @@ export default function Cursos() {
     } catch (e) { toast.erro(e.message); } finally { setOcupado(false); }
   }
 
-  async function pedirInativacao(curso) {
-    try {
-      await api.del(`/cursos/${curso.id}`);
-      toast.sucesso('Curso inativado.');
-      carregar();
-    } catch (e) {
-      if (e.status === 409 && e.detalhes) setAcao({ curso, tipo: 'inativar', detalhes: e.detalhes, mensagem: e.message });
-      else toast.erro(e.message);
-    }
-  }
-
-  async function confirmarAcao() {
+  async function reativar() {
     setOcupado(true);
     try {
-      if (acao.tipo === 'inativar') {
-        await api.del(`/cursos/${acao.curso.id}?forcar=true`);
-        toast.sucesso('Curso inativado e reservas futuras canceladas.');
-      } else if (acao.tipo === 'reativar') {
-        await api.post(`/cursos/${acao.curso.id}/reativar`);
-        toast.sucesso('Curso reativado.');
-      } else {
-        await api.del(`/cursos/${acao.curso.id}/permanente`);
-        toast.sucesso('Curso excluído definitivamente.');
-      }
+      await api.post(`/cursos/${acao.curso.id}/reativar`);
+      toast.sucesso('Curso reativado.');
       setAcao(null);
       carregar();
     } catch (e) { toast.erro(e.message); } finally { setOcupado(false); }
@@ -79,16 +63,11 @@ export default function Cursos() {
         <>
           <button className="btn btn-secondary btn-sm"
             onClick={() => setForm({ id: c.id, nome: c.nome, sigla: c.sigla || '' })}>Editar</button>
-          {c.status === 'ATIVO'
-            ? <button className="btn btn-danger btn-sm" onClick={() => pedirInativacao(c)}>Inativar</button>
-            : (
-              <>
-                <button className="btn btn-secondary btn-sm"
-                  onClick={() => setAcao({ curso: c, tipo: 'reativar' })}>Reativar</button>
-                <button className="btn btn-danger btn-sm"
-                  onClick={() => setAcao({ curso: c, tipo: 'excluir' })}>Excluir</button>
-              </>
-            )}
+          {c.status === 'INATIVO' && (
+            <button className="btn btn-secondary btn-sm"
+              onClick={() => setAcao({ curso: c, tipo: 'reativar' })}>Reativar</button>
+          )}
+          <button className="btn btn-danger btn-sm" onClick={() => setExcluindo(c)}>Excluir</button>
         </>
       ) },
   ];
@@ -119,7 +98,7 @@ export default function Cursos() {
         : (
           <DataTable colunas={colunas} dados={cursos} buscaPlaceholder="Buscar por nome ou sigla…"
             classeLinha={(c) => (c.status === 'INATIVO' ? 'dim' : '')}
-            vazio={<EmptyState icone="🎓" titulo="Nenhum curso encontrado"
+            vazio={<EmptyState icone={<Icone nome="cursos" tamanho={30} />} titulo="Nenhum curso encontrado"
               descricao="Cadastre um curso para vincular usuários e ambientes." />} />
         )}
 
@@ -144,27 +123,21 @@ export default function Cursos() {
         </Drawer>
       )}
 
-      {acao && (
+      {acao?.tipo === 'reativar' && (
         <ConfirmDialog
-          titulo={{
-            inativar: 'Inativar curso com reservas ativas',
-            reativar: 'Reativar curso',
-            excluir: 'Excluir definitivamente',
-          }[acao.tipo]}
-          tom={acao.tipo === 'reativar' ? 'ok' : 'danger'}
-          confirmarTexto={{
-            inativar: 'Inativar e cancelar reservas',
-            reativar: 'Reativar',
-            excluir: 'Excluir definitivamente',
-          }[acao.tipo]}
-          mensagem={acao.mensagem || {
-            reativar: `${acao.curso.nome} volta a conceder acesso aos ambientes vinculados.`,
-            excluir: `${acao.curso.nome} será removido do banco. Só é permitido quando não há usuários vinculados nem reservas futuras.`,
-          }[acao.tipo]}
-          detalhes={acao.detalhes}
+          titulo="Reativar curso"
+          tom="ok"
+          confirmarTexto="Reativar"
+          mensagem={`${acao.curso.nome} volta a conceder acesso aos ambientes vinculados.`}
           ocupado={ocupado}
-          onConfirm={confirmarAcao}
+          onConfirm={reativar}
           onClose={() => setAcao(null)} />
+      )}
+
+      {excluindo && (
+        <DialogoExclusao recurso="cursos" rotulo="curso" item={excluindo}
+          onFechar={() => setExcluindo(null)}
+          onConcluido={(msg) => { toast.sucesso(msg); setExcluindo(null); carregar(); }} />
       )}
     </>
   );

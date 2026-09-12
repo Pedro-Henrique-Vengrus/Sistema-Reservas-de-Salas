@@ -36,6 +36,14 @@
   display: grid; place-items: center;
 }
 .sidebar-brand .name { color: var(--white); font-weight: 700; letter-spacing: -.01em; font-size: var(--fs-lg); }
+
+/* Marca: arte oficial de public/marca.png, com o desenho vetorial como reserva.
+   A placa clara resolve os dois casos — PNG de fundo branco ou com transparencia. */
+.marca { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.marca-placa { background: var(--white); border-radius: var(--r-md); padding: 5px 10px; display: inline-flex; }
+.marca-placa img { display: block; width: auto; max-width: 190px; object-fit: contain; }
+.marca-chip { border-radius: var(--r-md); background: var(--white); display: grid; place-items: center; flex: 0 0 auto; }
+.marca-nome { color: var(--white); font-weight: 700; letter-spacing: -.01em; font-size: var(--fs-lg); }
 .sidebar.collapsed .sidebar-brand { padding: 0 var(--sp-5); }
 
 .sidebar-nav { flex: 1; overflow-y: auto; padding: var(--sp-4) var(--sp-3); }
@@ -62,7 +70,7 @@
 }
 .nav-item:hover { background: rgba(255, 255, 255, .07); color: var(--white); text-decoration: none; }
 .nav-item.active { background: var(--brand-600); color: var(--white); font-weight: 600; }
-.nav-item .icon { width: 18px; flex: 0 0 18px; text-align: center; font-size: var(--fs-lg); }
+.nav-item .icon { width: 18px; flex: 0 0 18px; display: grid; place-items: center; }
 .nav-item .label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 .sidebar.collapsed .nav-item .label, .sidebar.collapsed .nav-item .count { display: none; }
 .nav-item .count {
@@ -266,6 +274,24 @@ table.data td.actions .btn + .btn { margin-left: var(--sp-2); }
 .search .input { padding-left: var(--sp-8); }
 .search .ico { position: absolute; left: var(--sp-3); top: 50%; transform: translateY(-50%); color: var(--ink-400); pointer-events: none; }
 
+/* Campo de data: texto dd/mm/aaaa nosso + botao que abre o calendario nativo */
+.campo-data { position: relative; }
+.campo-data .input { padding-right: var(--sp-8); }
+.campo-data-btn {
+  position: absolute; right: var(--sp-1); top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border: 0; border-radius: var(--r-sm); background: transparent;
+  font-size: 14px; line-height: 1; color: var(--ink-500); cursor: pointer;
+}
+.campo-data-btn:hover { background: var(--ink-100); color: var(--ink-900); }
+.campo-data-btn:disabled { opacity: .4; cursor: default; background: transparent; }
+/* Precisa continuar renderizado para o showPicker() funcionar — dai opacidade, nao display */
+.campo-data-nativo {
+  position: absolute; right: var(--sp-4); bottom: 0;
+  width: 1px; height: 1px; padding: 0; border: 0;
+  opacity: 0; pointer-events: none;
+}
+
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
 .form-grid .span-2 { grid-column: span 2; }
 
@@ -326,7 +352,7 @@ table.data td.actions .btn + .btn { margin-left: var(--sp-2); }
 
 /* ------------------------------------------------------------ Estados */
 .empty { padding: var(--sp-12) var(--sp-6); text-align: center; color: var(--ink-500); }
-.empty .ico { font-size: 34px; opacity: .45; margin-bottom: var(--sp-3); }
+.empty .ico { display: flex; justify-content: center; color: var(--ink-400); margin-bottom: var(--sp-3); }
 .empty h4 { color: var(--ink-700); margin-bottom: var(--sp-1); }
 .empty p { font-size: var(--fs-md); max-width: 46ch; margin: 0 auto; }
 
@@ -387,14 +413,10 @@ table.agenda td.slot { padding: 0; height: 42px; }
 .login-hero h1 { color: var(--white); font-size: 40px; line-height: 1.15; max-width: 16ch; }
 .login-hero p { color: var(--brand-100); font-size: var(--fs-lg); max-width: 46ch; margin-top: var(--sp-4); }
 .login-hero .feature { display: flex; gap: var(--sp-3); align-items: flex-start; color: var(--brand-100); font-size: var(--fs-md); }
+.login-hero .feature svg { flex: 0 0 auto; margin-top: 1px; color: var(--brand-300); }
 .login-hero .feature strong { color: var(--white); display: block; }
 .login-form-wrap { display: flex; align-items: center; justify-content: center; padding: var(--sp-12); background: var(--surface); }
 .login-form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: var(--sp-4); }
-.cred-table { width: 100%; font-size: var(--fs-sm); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
-.cred-table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--ink-100); }
-.cred-table tr:last-child td { border-bottom: none; }
-.cred-table tr { cursor: pointer; }
-.cred-table tr:hover td { background: var(--brand-050); }
 
 /* -------------------------------------------------------- Notificacoes */
 .notif-list { display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; }

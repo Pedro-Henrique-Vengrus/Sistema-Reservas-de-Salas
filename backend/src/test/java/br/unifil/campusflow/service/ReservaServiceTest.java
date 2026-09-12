@@ -68,6 +68,40 @@ class ReservaServiceTest {
     }
 
     @Test
+    @DisplayName("Horario que ja passou hoje e recusado, mesmo sendo a data de hoje")
+    void horarioJaVencidoHojeBloqueia() {
+        when(periodoGrade.gradeAberta()).thenReturn(true);
+        LocalTime jaPassou = LocalTime.now().minusHours(1);
+        // Perto da meia-noite "uma hora atras" cai em ontem: ai a regra da data ja cobre
+        if (jaPassou.isAfter(LocalTime.now())) return;
+
+        ReservaRequest hojeVencido = new ReservaRequest(
+                100L, LocalDate.now(), jaPassou, jaPassou.plusMinutes(30),
+                TipoReserva.GRADE_BIMESTRAL, null, null);
+
+        assertThatThrownBy(() -> service.criar(hojeVencido))
+                .isInstanceOf(ConflitoException.class)
+                .hasMessageContaining("horario ja passou");
+
+        verify(reservaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Horario ainda por vir hoje continua valendo")
+    void horarioFuturoHojeEAceito() {
+        when(periodoGrade.gradeAberta()).thenReturn(true);
+        LocalTime daquiAPouco = LocalTime.now().plusHours(1);
+        // Perto da meia-noite "daqui a uma hora" cairia em amanha; o caso deixa de valer
+        if (daquiAPouco.isBefore(LocalTime.now())) return;
+
+        Reserva r = service.criar(new ReservaRequest(
+                100L, LocalDate.now(), daquiAPouco, daquiAPouco.plusMinutes(30),
+                TipoReserva.GRADE_BIMESTRAL, null, null));
+
+        assertThat(r.getStatus()).isEqualTo(StatusReserva.APROVADA);
+    }
+
+    @Test
     @DisplayName("Grade bimestral com periodo aberto confirma direto")
     void gradeBimestralAbertaNasceAprovada() {
         when(periodoGrade.gradeAberta()).thenReturn(true);

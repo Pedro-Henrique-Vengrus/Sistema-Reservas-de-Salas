@@ -3,6 +3,7 @@ import { api, qs } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import { useToast } from '../../components/ui/ToastProvider';
+import Icone from '../../components/ui/Icone';
 import {
   ConfirmDialog, Drawer, EmptyState, Field, Notice, PageHeader, StatusBadge,
 } from '../../components/ui/primitives';
@@ -147,7 +148,7 @@ export default function Usuarios() {
           <DataTable colunas={colunas} dados={usuarios} porPagina={15}
             buscaPlaceholder="Buscar por nome ou e-mail…"
             classeLinha={(u) => (u.status === 'INATIVO' ? 'dim' : '')}
-            vazio={<EmptyState icone="👤" titulo="Nenhum usuário encontrado"
+            vazio={<EmptyState icone={<Icone nome="usuarios" tamanho={30} />} titulo="Nenhum usuário encontrado"
               descricao="Ajuste os filtros ou cadastre um novo usuário." />} />
         )}
 

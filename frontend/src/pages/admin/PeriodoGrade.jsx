@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { useToast } from '../../components/ui/ToastProvider';
 import { Field, Notice, PageHeader, Switch } from '../../components/ui/primitives';
+import CampoData from '../../components/ui/CampoData';
 import { dataBr, dataHoraBr } from '../../lib/format';
 
 /**
@@ -74,12 +75,12 @@ export default function PeriodoGrade() {
 
             <div className="split">
               <Field label="Início da vigência" hint="Opcional.">
-                <input className="input" type="date" value={form.inicioVigencia}
-                  onChange={(e) => setForm({ ...form, inicioVigencia: e.target.value })} />
+                <CampoData value={form.inicioVigencia}
+                  onChange={(iso) => setForm({ ...form, inicioVigencia: iso })} />
               </Field>
               <Field label="Fim da vigência" hint="Após esta data a grade fecha sozinha.">
-                <input className="input" type="date" value={form.fimVigencia}
-                  onChange={(e) => setForm({ ...form, fimVigencia: e.target.value })} />
+                <CampoData value={form.fimVigencia} min={form.inicioVigencia || undefined}
+                  onChange={(iso) => setForm({ ...form, fimVigencia: iso })} />
               </Field>
             </div>
 

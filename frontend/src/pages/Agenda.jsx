@@ -3,6 +3,8 @@ import { api, qs } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/ui/ToastProvider';
 import { Drawer, Field, Notice, PageHeader, StatusBadge, EmptyState } from '../components/ui/primitives';
+import CampoData from '../components/ui/CampoData';
+import Icone from '../components/ui/Icone';
 import {
   dataBr, diaDaSemana, hhmm, hojeIso, inicioDaSemana, reservaPassada, somaDias, TIPOS_RESERVA,
 } from '../lib/format';
@@ -133,7 +135,7 @@ export default function Agenda() {
             </div>
             <div className="mt-4">
               <Field label="Ir para a data">
-                <input className="input" type="date" value={dia} onChange={(e) => setDia(e.target.value)} />
+                <CampoData value={dia} onChange={(iso) => iso && setDia(iso)} />
               </Field>
             </div>
           </section>
@@ -191,7 +193,7 @@ export default function Agenda() {
           {carregando && <div className="card-body"><div className="skeleton" style={{ height: 220 }} /></div>}
 
           {!carregando && salas.length === 0 && (
-            <EmptyState icone="🏛" titulo="Nenhum ambiente visível"
+            <EmptyState icone={<Icone nome="ambiente" tamanho={30} />} titulo="Nenhum ambiente visível"
               descricao="Ajuste os filtros ou verifique com a administração os cursos vinculados ao seu perfil." />
           )}
 

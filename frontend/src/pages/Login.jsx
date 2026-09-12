@@ -2,14 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Field, Notice } from '../components/ui/primitives';
-import Logo from '../components/ui/Logo';
-
-const CONTAS = [
-  ['admin@campus.br', 'Admin', 'Único perfil com painel administrativo'],
-  ['reitor@campus.br', 'Reitor', 'Solicitante — Computação e Engenharia'],
-  ['pedro@campus.br', 'Professor', 'Ciência da Computação'],
-  ['carla@campus.br', 'Professor', 'Engenharia'],
-];
+import Marca from '../components/ui/Marca';
+import Icone from '../components/ui/Icone';
 
 export default function Login() {
   const { login } = useAuth();
@@ -35,10 +29,7 @@ export default function Login() {
   return (
     <div className="login">
       <section className="login-hero">
-        <div className="row gap-2">
-          <span className="login-mark"><Logo tamanho={30} /></span>
-          <strong style={{ fontSize: 20, letterSpacing: '-.01em' }}>CampusFlow</strong>
-        </div>
+        <Marca altura={34} />
 
         <div>
           <h1>Reserva de salas e laboratórios do campus</h1>
@@ -50,15 +41,15 @@ export default function Login() {
 
         <div className="col gap-4" style={{ maxWidth: 460 }}>
           <div className="feature">
-            <span aria-hidden>▤</span>
+            <Icone nome="agenda" tamanho={20} />
             <span><strong>Agenda semanal</strong>Visão ambiente × horário, com conflitos evidentes.</span>
           </div>
           <div className="feature">
-            <span aria-hidden>⇄</span>
-            <span><strong>Troca entre professores</strong>Reservas no mesmo dia e turno, com justificativa.</span>
+            <Icone nome="troca" tamanho={20} />
+            <span><strong>Troca entre professores</strong>Direta no mesmo dia e turno; fora disso, com aval do gestor.</span>
           </div>
           <div className="feature">
-            <span aria-hidden>⚖</span>
+            <Icone nome="moderacao" tamanho={20} />
             <span><strong>Moderação e relatórios</strong>Fila de aprovação e exportação por período, curso e sala.</span>
           </div>
         </div>
@@ -87,20 +78,9 @@ export default function Login() {
             {entrando ? 'Entrando…' : 'Entrar'}
           </button>
 
-          <div className="mt-4">
-            <p className="text-sm text-muted mb-4">Contas de demonstração (senha <code>123</code>) — clique para preencher:</p>
-            <table className="cred-table">
-              <tbody>
-                {CONTAS.map(([mail, perfil, obs]) => (
-                  <tr key={mail} onClick={() => { setEmail(mail); setSenha('123'); }}>
-                    <td className="text-mono">{mail}</td>
-                    <td><strong>{perfil}</strong></td>
-                    <td className="text-muted text-sm">{obs}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <p className="text-sm text-muted">
+            Esqueceu a senha ou ainda não tem acesso? Procure a administração do campus.
+          </p>
         </form>
       </section>
     </div>

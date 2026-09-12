@@ -113,6 +113,12 @@ public class PropostaTrocaService {
             throw new ConflitoException("Voce so pode oferecer uma reserva sua.");
         }
 
+        if (propostaRepository.existeEmAbertoParaOMesmoPar(u.getId(), desejada.getId(), oferecida.getId())) {
+            throw new ConflitoException(
+                    "Voce ja tem uma proposta em aberto para esta mesma troca. "
+                  + "Aguarde a resposta ou cancele a anterior.");
+        }
+
         validarParDeReservas(desejada, oferecida);
 
         // Visibilidade setorizada nos dois sentidos: cada professor precisa enxergar o ambiente que vai assumir
@@ -191,7 +197,7 @@ public class PropostaTrocaService {
             return propostaRepository.save(p);
         }
 
-        efetivarTroca(p, desejada, oferecida, proponente, u);
+        efetivarTroca(p, desejada, oferecida, proponente);
         return propostaRepository.save(p);
     }
 
@@ -225,7 +231,7 @@ public class PropostaTrocaService {
 
         // O cenario pode ter mudado entre o aceite do professor e a decisao do gestor
         revalidar(p, desejada, oferecida, proponente);
-        efetivarTroca(p, desejada, oferecida, proponente, dono);
+        efetivarTroca(p, desejada, oferecida, proponente);
         return propostaRepository.save(p);
     }
 
@@ -274,9 +280,13 @@ public class PropostaTrocaService {
         validarConflitoDaTroca(desejada, oferecida);
     }
 
-    /** Efetiva a troca mutua e encerra as propostas concorrentes. */
+    /**
+     * Efetiva a troca mutua e encerra as propostas concorrentes.
+     * O dono e lido da propria reserva desejada -- receber isso por parametro abriria espaco
+     * para efetivar a troca com um dono diferente do que esta gravado.
+     */
     private void efetivarTroca(PropostaTroca p, Reserva desejada, Reserva oferecida,
-                               Usuario proponente, Usuario dono) {
+                               Usuario proponente) {
         Usuario donoOriginal = desejada.getSolicitante();
         desejada.setSolicitante(proponente);
         oferecida.setSolicitante(donoOriginal);

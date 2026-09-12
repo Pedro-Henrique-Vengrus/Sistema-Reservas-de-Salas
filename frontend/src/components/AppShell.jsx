@@ -5,7 +5,9 @@ import { api } from '../api/client';
 import { iniciais } from '../lib/format';
 import NotificacoesPopover from './NotificacoesPopover';
 import Logo from './ui/Logo';
+import Marca from './ui/Marca';
 import Preferencias from './Preferencias';
+import Icone from './ui/Icone';
 
 const ROTULOS = {
   '': 'Painel', agenda: 'Agenda', ambientes: 'Ambientes', 'minhas-reservas': 'Minhas reservas',
@@ -68,32 +70,34 @@ export default function AppShell() {
     <div className="shell">
       <nav className={`sidebar ${colapsada ? 'collapsed' : ''}`}>
         <div className="sidebar-brand">
-          <span className="mark"><Logo tamanho={26} /></span>
-          {!colapsada && <span className="name">CampusFlow</span>}
+          {/* Recolhida nao cabe o logotipo com o nome: fica so o simbolo */}
+          {colapsada
+            ? <span className="mark"><Logo tamanho={26} /></span>
+            : <Marca altura={28} />}
         </div>
 
         <div className="sidebar-nav">
           {ehSolicitante && (
             <>
               <div className="sidebar-section">Solicitante</div>
-              <Item to="/" icone="▦" rotulo="Painel" fim />
-              <Item to="/agenda" icone="▤" rotulo="Agenda" />
-              <Item to="/ambientes" icone="🏛" rotulo="Ambientes" />
-              <Item to="/minhas-reservas" icone="📋" rotulo="Minhas reservas" />
-              <Item to="/trocas" icone="⇄" rotulo="Trocas de sala" contador={contadores.trocas} />
+              <Item to="/" icone="painel" rotulo="Painel" fim />
+              <Item to="/agenda" icone="agenda" rotulo="Agenda" />
+              <Item to="/ambientes" icone="ambiente" rotulo="Ambientes" />
+              <Item to="/minhas-reservas" icone="reservas" rotulo="Minhas reservas" />
+              <Item to="/trocas" icone="troca" rotulo="Trocas de sala" contador={contadores.trocas} />
             </>
           )}
 
           {ehAdministrativo && (
             <>
               <div className="sidebar-section">Administração</div>
-              {!ehSolicitante && <Item to="/" icone="▦" rotulo="Painel" fim />}
-              <Item to="/admin/moderacao" icone="⚖" rotulo="Moderação" contador={contadores.moderacao} />
-              <Item to="/admin/usuarios" icone="👤" rotulo="Usuários" />
-              <Item to="/admin/salas" icone="🏛" rotulo="Ambientes" />
-              <Item to="/admin/cursos" icone="🎓" rotulo="Cursos" />
-              <Item to="/admin/periodo-grade" icone="🗓" rotulo="Período da grade" />
-              <Item to="/admin/relatorios" icone="📊" rotulo="Relatórios" />
+              {!ehSolicitante && <Item to="/" icone="painel" rotulo="Painel" fim />}
+              <Item to="/admin/moderacao" icone="moderacao" rotulo="Moderação" contador={contadores.moderacao} />
+              <Item to="/admin/usuarios" icone="usuarios" rotulo="Usuários" />
+              <Item to="/admin/salas" icone="ambiente" rotulo="Ambientes" />
+              <Item to="/admin/cursos" icone="cursos" rotulo="Cursos" />
+              <Item to="/admin/periodo-grade" icone="periodo" rotulo="Período da grade" />
+              <Item to="/admin/relatorios" icone="relatorios" rotulo="Relatórios" />
             </>
           )}
         </div>
@@ -121,14 +125,14 @@ export default function AppShell() {
             )}
             <NotificacoesPopover naoLidas={contadores.avisos} aoAtualizar={carregarContadores} />
             <button className="icon-btn" onClick={() => setPreferencias(true)}
-              title="Preferências" aria-label="Preferências">⚙</button>
+              title="Preferências" aria-label="Preferências"><Icone nome="preferencias" tamanho={17} /></button>
             <div className="user-chip">
               <span className="avatar" aria-hidden>{iniciais(user?.nome)}</span>
               <span className="meta">
                 <strong>{user?.nome}</strong>
                 <span>{user?.role}</span>
               </span>
-              <button className="icon-btn" onClick={sair} title="Sair" aria-label="Sair">⏻</button>
+              <button className="icon-btn" onClick={sair} title="Sair" aria-label="Sair"><Icone nome="sair" tamanho={17} /></button>
             </div>
           </div>
         </header>
@@ -146,7 +150,7 @@ export default function AppShell() {
 function Item({ to, icone, rotulo, contador = 0, fim = false }) {
   return (
     <NavLink to={to} end={fim} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title={rotulo}>
-      <span className="icon" aria-hidden>{icone}</span>
+      <span className="icon"><Icone nome={icone} /></span>
       <span className="label">{rotulo}</span>
       {contador > 0 && <span className="count">{contador}</span>}
     </NavLink>

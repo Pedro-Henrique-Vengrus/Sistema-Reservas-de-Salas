@@ -111,7 +111,8 @@ mvn spring-boot:run      # ou ./mvnw spring-boot:run
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui
 
-O Flyway aplica as migrations **V1–V14** e insere os dados de demonstração na primeira execução.
+O Flyway aplica as migrations **V1–V15** na primeira execução, deixando o banco pronto e vazio
+(apenas a conta de Admin — ver *Primeiro acesso* abaixo).
 
 ### 3. Rodar os testes
 
@@ -119,8 +120,9 @@ O Flyway aplica as migrations **V1–V14** e insere os dados de demonstração n
 cd backend && mvn test
 ```
 
-48 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
-visibilidade setorizada, os dois caminhos da troca (direta e com aval do gestor), as condições do envio de e-mail, inativação forçada, separação de perfis e derivação de turno.
+52 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
+visibilidade setorizada, os dois caminhos da troca (direta e com aval do gestor), as condições do envio de
+e-mail, inativação forçada, separação de perfis, derivação de turno, horário já vencido e proposta duplicada.
 
 ### 4. Rodar o frontend
 
@@ -134,15 +136,27 @@ App em http://localhost:5173 (o Vite faz proxy de `/api` para `localhost:8080`).
 
 ---
 
-## 👥 Contas de demonstração (senha `123`)
+## 👥 Primeiro acesso
 
-| E-mail | Perfil | Cursos | Observação |
-|---|---|---|---|
-| `admin@campus.br` | ADMIN | — | Painel completo, sem reservas próprias |
-| `reitor@campus.br` | REITOR | CC, ENG | Solicitante, como o professor |
-| `pedro@campus.br` | PROFESSOR | CC | — |
-| `joao@campus.br` | PROFESSOR | CC, ENG | Tem reserva no mesmo turno do Pedro (testar troca) |
-| `carla@campus.br` | PROFESSOR | ENG | Não enxerga a Sala 1001 (testar visibilidade) |
+O banco nasce **vazio**: sem cursos, sem ambientes, sem reservas e com um único usuário — a conta
+administrativa. Todo o resto é montado pelo Admin, no painel.
+
+| E-mail | Senha | Perfil |
+|---|---|---|
+| `admin@campus.br` | `123` | ADMIN |
+
+Ordem sugerida para colocar o sistema de pé:
+
+1. **Cursos** — cadastre os cursos (nome + sigla). Nada mais funciona sem eles: a visibilidade
+   setorizada é ancorada no curso.
+2. **Ambientes** — cadastre as salas e laboratórios e **vincule cada um aos cursos** que podem
+   enxergá-lo. Ambiente sem curso vinculado não aparece para nenhum solicitante.
+3. **Usuários** — crie os professores e o reitor, atribuindo os cursos de cada um.
+4. **Período da grade** — começa **fechado**. Enquanto estiver assim, os solicitantes só conseguem
+   pedir reservas de última hora (que caem na moderação). Abra quando o preenchimento bimestral
+   for liberado pelo edital.
+
+> Trocar a senha do Admin no primeiro acesso é o recomendado — o hash que vem na migration é público.
 
 ---
 
@@ -213,7 +227,7 @@ campusflow/
 │     │  ├─ service/             # regras de negócio
 │     │  ├─ controller/          # REST
 │     │  └─ exception/           # handler global
-│     ├─ main/resources/db/migration/   # Flyway V1–V14
+│     ├─ main/resources/db/migration/   # Flyway V1–V15
 │     └─ test/java/…/service/    # testes das regras críticas
 └─ frontend/                     # React 18 + Vite
    └─ src/
@@ -242,3 +256,22 @@ campusflow/
 | `tb_proposta_troca` | reserva desejada, reserva oferecida, justificativa, `status` |
 | `tb_notificacao` | avisos in-app por destinatário |
 | `tb_periodo_grade` | linha única com a flag de liberação da grade bimestral |
+
+## 🎨 Trocar a marca
+
+O logotipo exibido na sidebar e na tela de login vem de `frontend/public/marca.png`.
+
+Basta salvar a arte nesse caminho — não há código para alterar nem build para rodar; o
+Vite serve o arquivo direto. Recomendações:
+
+- **Corte as margens em branco.** A altura é fixada em ~30 px: sobrando moldura, a escrita
+  fica minúscula dentro dela. No Windows, o Paint resolve (*Selecionar → Cortar*).
+- Fundo branco ou transparente funcionam igual — a marca é exibida sobre uma placa clara,
+  porque as duas telas onde ela aparece têm fundo verde-escuro.
+- Proporção deitada (algo perto de 6:1) é o que melhor acomoda o logotipo com o nome.
+
+**Sem o arquivo**, a aplicação usa automaticamente o símbolo vetorial (`ui/Logo.jsx`) ao
+lado do nome escrito — nunca fica sem marca.
+
+> O ícone da aba do navegador é separado: `frontend/public/favicon.svg`. Um logotipo com
+> nome fica ilegível em 16 px, então ali vale manter só o símbolo.

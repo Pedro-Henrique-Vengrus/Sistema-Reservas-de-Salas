@@ -86,9 +86,11 @@ class CursoServiceTest {
         computacao.setStatus(StatusRegistro.INATIVO);
         when(reservaRepository.findFuturasAtivasDoCurso(eq(1L), any())).thenReturn(List.of());
 
+        // A mensagem tem de nomear o que prende o curso, sem citar o que esta zerado.
         assertThatThrownBy(() -> service.excluirFisicamente(1L))
                 .isInstanceOf(ConflitoException.class)
-                .hasMessageContaining("usuario(s)");
+                .hasMessageContaining("usuario vinculado")
+                .hasMessageNotContaining("reserva");
         verify(cursoRepository, never()).delete(any());
     }
 
