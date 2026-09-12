@@ -36,6 +36,14 @@
   display: grid; place-items: center;
 }
 .sidebar-brand .name { color: var(--white); font-weight: 700; letter-spacing: -.01em; font-size: var(--fs-lg); }
+
+/* Marca: arte oficial de public/marca.png, com o desenho vetorial como reserva.
+   A placa clara resolve os dois casos — PNG de fundo branco ou com transparencia. */
+.marca { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.marca-placa { background: var(--white); border-radius: var(--r-md); padding: 5px 10px; display: inline-flex; }
+.marca-placa img { display: block; width: auto; max-width: 190px; object-fit: contain; }
+.marca-chip { border-radius: var(--r-md); background: var(--white); display: grid; place-items: center; flex: 0 0 auto; }
+.marca-nome { color: var(--white); font-weight: 700; letter-spacing: -.01em; font-size: var(--fs-lg); }
 .sidebar.collapsed .sidebar-brand { padding: 0 var(--sp-5); }
 
 .sidebar-nav { flex: 1; overflow-y: auto; padding: var(--sp-4) var(--sp-3); }

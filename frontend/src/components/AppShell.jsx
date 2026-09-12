@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { iniciais } from '../lib/format';
 import NotificacoesPopover from './NotificacoesPopover';
 import Logo from './ui/Logo';
+import Marca from './ui/Marca';
 import Preferencias from './Preferencias';
 import Icone from './ui/Icone';
 
@@ -69,8 +70,10 @@ export default function AppShell() {
     <div className="shell">
       <nav className={`sidebar ${colapsada ? 'collapsed' : ''}`}>
         <div className="sidebar-brand">
-          <span className="mark"><Logo tamanho={26} /></span>
-          {!colapsada && <span className="name">CampusFlow</span>}
+          {/* Recolhida nao cabe o logotipo com o nome: fica so o simbolo */}
+          {colapsada
+            ? <span className="mark"><Logo tamanho={26} /></span>
+            : <Marca altura={28} />}
         </div>
 
         <div className="sidebar-nav">

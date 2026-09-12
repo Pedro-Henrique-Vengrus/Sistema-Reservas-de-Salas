@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Field, Notice } from '../components/ui/primitives';
-import Logo from '../components/ui/Logo';
+import Marca from '../components/ui/Marca';
 import Icone from '../components/ui/Icone';
 
 export default function Login() {
@@ -29,10 +29,7 @@ export default function Login() {
   return (
     <div className="login">
       <section className="login-hero">
-        <div className="row gap-2">
-          <span className="login-mark"><Logo tamanho={30} /></span>
-          <strong style={{ fontSize: 20, letterSpacing: '-.01em' }}>CampusFlow</strong>
-        </div>
+        <Marca altura={34} />
 
         <div>
           <h1>Reserva de salas e laboratórios do campus</h1>

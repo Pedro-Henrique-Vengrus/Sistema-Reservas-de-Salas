@@ -255,3 +255,22 @@ campusflow/
 | `tb_proposta_troca` | reserva desejada, reserva oferecida, justificativa, `status` |
 | `tb_notificacao` | avisos in-app por destinatário |
 | `tb_periodo_grade` | linha única com a flag de liberação da grade bimestral |
+
+## 🎨 Trocar a marca
+
+O logotipo exibido na sidebar e na tela de login vem de `frontend/public/marca.png`.
+
+Basta salvar a arte nesse caminho — não há código para alterar nem build para rodar; o
+Vite serve o arquivo direto. Recomendações:
+
+- **Corte as margens em branco.** A altura é fixada em ~30 px: sobrando moldura, a escrita
+  fica minúscula dentro dela. No Windows, o Paint resolve (*Selecionar → Cortar*).
+- Fundo branco ou transparente funcionam igual — a marca é exibida sobre uma placa clara,
+  porque as duas telas onde ela aparece têm fundo verde-escuro.
+- Proporção deitada (algo perto de 6:1) é o que melhor acomoda o logotipo com o nome.
+
+**Sem o arquivo**, a aplicação usa automaticamente o símbolo vetorial (`ui/Logo.jsx`) ao
+lado do nome escrito — nunca fica sem marca.
+
+> O ícone da aba do navegador é separado: `frontend/public/favicon.svg`. Um logotipo com
+> nome fica ilegível em 16 px, então ali vale manter só o símbolo.
