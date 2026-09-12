@@ -120,8 +120,9 @@ O Flyway aplica as migrations **V1–V15** na primeira execução, deixando o ba
 cd backend && mvn test
 ```
 
-48 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
-visibilidade setorizada, os dois caminhos da troca (direta e com aval do gestor), as condições do envio de e-mail, inativação forçada, separação de perfis e derivação de turno.
+52 testes de regra de negócio (JUnit 5 + Mockito, sem banco): modos de reserva, período da grade,
+visibilidade setorizada, os dois caminhos da troca (direta e com aval do gestor), as condições do envio de
+e-mail, inativação forçada, separação de perfis, derivação de turno, horário já vencido e proposta duplicada.
 
 ### 4. Rodar o frontend
 
